@@ -1,4 +1,5 @@
-const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:8000";
+const SERVER_URL =
+  import.meta.env.VITE_SERVER_URL || "http://localhost:8000";
 
 export async function apiFetch<T = unknown>(
   endpoint: string,

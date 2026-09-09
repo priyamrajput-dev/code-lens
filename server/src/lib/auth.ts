@@ -1,6 +1,7 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { db } from "../db/index.js";
+import * as schema from "../db/schema.js";
 import { env } from "../common/config/env.js";
 
 const clientURL = env.CLIENT_URL;
@@ -8,6 +9,7 @@ const clientURL = env.CLIENT_URL;
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
     provider: "pg",
+    schema,
   }),
   socialProviders: {
     github: {

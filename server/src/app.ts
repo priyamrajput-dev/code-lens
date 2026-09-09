@@ -23,8 +23,8 @@ export function createApplication(): Express {
 
   app.use(express.json());
 
-  // Better Auth handler
-  app.all("/api/auth/*", toNodeHandler(auth));
+  // Better Auth handler for Express 5
+  app.all("/api/auth/{*any}", toNodeHandler(auth));
 
   // Feature Module Routes
   app.use("/api/github", githubRoutes);
