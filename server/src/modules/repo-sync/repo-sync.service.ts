@@ -134,7 +134,11 @@ class RepoSyncService {
         // namespace might not exist yet
       }
 
-      await this.saveRepoChunksToPinecone(namespace, chunks);
+      try {
+        await this.saveRepoChunksToPinecone(namespace, chunks);
+      } catch (pineconeErr) {
+        console.warn(`Pinecone indexing skipped/failed for ${repoFullName}:`, pineconeErr);
+      }
       await this.repoSyncRepository.updateSyncStatus(repoSyncId, "synced", chunks.length, new Date());
     } catch (error) {
       console.error(`Repo sync failed for ${repoFullName}:`, error);

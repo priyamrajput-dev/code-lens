@@ -54,6 +54,10 @@ class GithubRepository {
   async deleteInstallationByUserId(userId: string) {
     return await db.delete(githubInstallation).where(eq(githubInstallation.userId, userId));
   }
+
+  async deleteInstallationByInstallationId(installationId: number) {
+    return await db.delete(githubInstallation).where(eq(githubInstallation.installationId, installationId));
+  }
 }
 
 export default GithubRepository;

@@ -31,8 +31,17 @@ export function GithubConnectCard({ installation }: GithubConnectCardProps) {
     try {
       await apiFetch("/api/github/installation", { method: "DELETE" });
       toast.success("GitHub App disconnected successfully");
-      queryClient.invalidateQueries({ queryKey: ["github-status"] });
-      queryClient.invalidateQueries({ queryKey: ["repos"] });
+      queryClient.setQueryData(["github-status"], {
+        connected: false,
+        accountLogin: null,
+        installedAt: null,
+        installationId: null,
+        installUrl: installUrl || installation.installUrl,
+      });
+      queryClient.setQueryData(["repos"], { repos: [], totalCount: 0 });
+      await queryClient.invalidateQueries({ queryKey: ["github-status"] });
+      await queryClient.invalidateQueries({ queryKey: ["repos"] });
+      await queryClient.invalidateQueries({ queryKey: ["settings"] });
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to disconnect");
     } finally {
@@ -84,21 +93,35 @@ export function GithubConnectCard({ installation }: GithubConnectCardProps) {
           </ul>
         )}
       </CardContent>
-      <CardFooter className="flex flex-wrap gap-3">
+      <CardFooter className="flex flex-wrap items-center gap-3">
         {connected ? (
-          <Button
-            type="button"
-            variant="outline"
-            className="text-destructive hover:bg-destructive/10 hover:text-destructive gap-2 cursor-pointer"
-            onClick={handleDisconnect}
-            disabled={loading}
-          >
-            <Unplug className="size-4" />
-            Disconnect GitHub App
-          </Button>
+          <>
+            {installation.installationId && (
+              <a
+                href={`https://github.com/settings/installations/${installation.installationId}`}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center justify-center gap-2 rounded-md bg-secondary px-4 py-2 text-xs font-medium text-secondary-foreground hover:bg-secondary/80 transition-colors shadow-sm cursor-pointer"
+              >
+                <GitHubIcon />
+                Configure Repositories on GitHub
+                <ExternalLink className="size-3 opacity-80" />
+              </a>
+            )}
+            <Button
+              type="button"
+              variant="outline"
+              className="text-destructive hover:bg-destructive/10 hover:text-destructive gap-2 cursor-pointer"
+              onClick={handleDisconnect}
+              disabled={loading}
+            >
+              <Unplug className="size-4" />
+              Disconnect GitHub App
+            </Button>
+          </>
         ) : (
           <a
-            href={installUrl || "https://github.com/apps"}
+            href={installUrl || "https://github.com/apps/code-lens-ai-code-reviewer/installations/new"}
             target="_blank"
             rel="noreferrer"
             className="inline-flex items-center justify-center gap-2 rounded-md bg-primary px-4 py-2 text-xs font-medium text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm cursor-pointer"

@@ -1,7 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
 import { useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -14,8 +17,9 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Lock, Unlock, Star, Search } from "lucide-react";
 import { SyncRepoButton } from "./sync-repo-button";
-import type { DashboardRepo, RepoSyncStatus } from "@/features/dashboard/lib/types";
+import type { DashboardRepo, RepoSyncStatus, GithubInstallationStatus } from "@/features/dashboard/lib/types";
 import { apiFetch } from "@/lib/api-client";
+import { GitHubIcon } from "@/features/auth/components/github-sign-in-form";
 
 type Filter = "all" | "public" | "private";
 
@@ -23,15 +27,27 @@ export function RepoList() {
   const [filter, setFilter] = useState<Filter>("all");
   const [search, setSearch] = useState("");
 
-  const { data: reposData, isLoading, isError } = useQuery({
+  const { data: statusData, isLoading: isStatusLoading } = useQuery({
+    queryKey: ["github-status"],
+    queryFn: async () => {
+      const res = await apiFetch<GithubInstallationStatus>("/api/github/status");
+      return res.data;
+    },
+  });
+
+  const isConnected = statusData?.connected === true;
+
+  const { data: reposData, isLoading: isReposLoading, isError } = useQuery({
     queryKey: ["repos"],
     queryFn: async () => {
       const res = await apiFetch<{ repos: DashboardRepo[]; totalCount: number }>("/api/github/repos?page=1");
       return res.data;
     },
+    enabled: isConnected,
   });
 
-  const rawRepos = reposData?.repos || [];
+  const isLoading = isStatusLoading || (isConnected && isReposLoading);
+  const rawRepos = isConnected ? reposData?.repos || [] : [];
 
   const { data: syncStatuses } = useQuery({
     queryKey: ["repo-sync-statuses", rawRepos.map((r) => r.fullName)],
@@ -46,10 +62,12 @@ export function RepoList() {
   });
 
   const repos = useMemo(() => {
-    return rawRepos.map((repo) => ({
-      ...repo,
-      syncStatus: syncStatuses?.[repo.fullName] || null,
-    }));
+    return [...rawRepos]
+      .map((repo) => ({
+        ...repo,
+        syncStatus: syncStatuses?.[repo.fullName] || null,
+      }))
+      .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
   }, [rawRepos, syncStatuses]);
 
   const visibleRepos = useMemo(() => {
@@ -66,6 +84,25 @@ export function RepoList() {
     public: repos.filter((r) => r.visibility === "public").length,
     private: repos.filter((r) => r.visibility === "private").length,
   };
+
+  if (!isStatusLoading && !isConnected) {
+    return (
+      <Card className="flex flex-col items-center justify-center p-12 text-center border-dashed">
+        <div className="flex size-14 items-center justify-center rounded-full bg-muted mb-4 border border-border">
+          <GitHubIcon className="size-7 text-muted-foreground" />
+        </div>
+        <h3 className="text-lg font-semibold tracking-tight">GitHub App Not Connected</h3>
+        <p className="text-sm text-muted-foreground max-w-md mt-1 mb-6">
+          Connect your GitHub account or organization to view, manage, and sync your repositories for automated AI reviews.
+        </p>
+        <Link to="/dashboard/github">
+          <Button size="lg">
+            Connect GitHub App
+          </Button>
+        </Link>
+      </Card>
+    );
+  }
 
   return (
     <div className="flex flex-1 flex-col gap-6">

@@ -11,13 +11,34 @@ export const auth = betterAuth({
     provider: "pg",
     schema,
   }),
+  advanced: {
+    defaultCookieAttributes: {
+      sameSite: "none",
+      secure: true,
+    },
+    useSecureCookies: true,
+  },
   socialProviders: {
     github: {
       clientId: env.GITHUB_CLIENT_ID,
       clientSecret: env.GITHUB_CLIENT_SECRET,
+      mapProfileToUser: async (profile) => ({
+        email: profile.email ?? `${profile.id}@users.noreply.github.com`,
+        name: profile.name ?? profile.login,
+        image: profile.avatar_url,
+      }),
     },
   },
   baseURL: env.BETTER_AUTH_URL,
   secret: env.BETTER_AUTH_SECRET,
-  trustedOrigins: [clientURL],
+  trustedOrigins: [
+    clientURL,
+    "http://localhost:3000",
+    "http://localhost:3001",
+    "http://localhost:5173",
+    "http://localhost:8080",
+    "http://localhost:*",
+    "http://127.0.0.1:*",
+    "https://slaw-walnut-showy.ngrok-free.dev",
+  ],
 });

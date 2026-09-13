@@ -13,7 +13,7 @@ const reviewsRepository = new ReviewsRepository();
 const githubRepository = new GithubRepository();
 const billingRepository = new BillingRepository();
 const reviewsService = new ReviewsService(reviewsRepository, githubRepository, billingRepository);
-const reviewsController = new ReviewsController(reviewsService);
+const reviewsController = new ReviewsController(reviewsService, githubRepository);
 
 reviewRoutes.post(
   "/webhook",
@@ -28,4 +28,12 @@ reviewRoutes.post(
   "/trigger",
   requireAuth,
   asyncHandler(reviewsController.triggerReview.bind(reviewsController)),
+);
+reviewRoutes.post(
+  "/snippet",
+  asyncHandler(reviewsController.analyzeSnippet.bind(reviewsController)),
+);
+reviewRoutes.post(
+  "/analyze",
+  asyncHandler(reviewsController.analyzeSnippet.bind(reviewsController)),
 );

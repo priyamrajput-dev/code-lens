@@ -13,10 +13,12 @@ const envSchema = z.object({
   // GitHub App
   GITHUB_APP_ID: z.string().optional(),
   GITHUB_PRIVATE_KEY: z.string().optional(),
+  GITHUB_APP_PRIVATE_KEY: z.string().optional(),
   GITHUB_WEBHOOK_SECRET: z.string().optional(),
   GITHUB_APP_SLUG: z.string().optional(),
 
   // AI & Vector DB
+  GEMINI_API_KEY: z.string().optional(),
   OPENROUTER_API_KEY: z.string().optional(),
   PINECONE_API_KEY: z.string().optional(),
   PINECONE_INDEX: z.string().default("code-lens-index").optional(),

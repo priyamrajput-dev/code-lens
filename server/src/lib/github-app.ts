@@ -5,13 +5,16 @@ let githubApp: App | null = null;
 
 export function getGithubApp(): App {
   if (!githubApp) {
-    if (!env.GITHUB_APP_ID || !env.GITHUB_PRIVATE_KEY) {
-      throw new Error("GitHub App credentials (GITHUB_APP_ID, GITHUB_PRIVATE_KEY) are not configured.");
+    const privateKey = env.GITHUB_PRIVATE_KEY || env.GITHUB_APP_PRIVATE_KEY;
+    if (!env.GITHUB_APP_ID || !privateKey) {
+      throw new Error(
+        "GitHub App credentials (GITHUB_APP_ID, GITHUB_PRIVATE_KEY / GITHUB_APP_PRIVATE_KEY) are not configured.",
+      );
     }
 
     githubApp = new App({
       appId: env.GITHUB_APP_ID,
-      privateKey: env.GITHUB_PRIVATE_KEY.replace(/\\n/g, "\n"),
+      privateKey: privateKey.replace(/\\n/g, "\n"),
       webhooks: {
         secret: env.GITHUB_WEBHOOK_SECRET || "default_secret",
       },

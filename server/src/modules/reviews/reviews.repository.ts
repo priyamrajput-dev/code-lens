@@ -1,4 +1,4 @@
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, inArray } from "drizzle-orm";
 import { db } from "../../db/index.js";
 import { pullRequest } from "../../db/schema.js";
 
@@ -33,6 +33,15 @@ class ReviewsRepository {
       .select()
       .from(pullRequest)
       .where(eq(pullRequest.repoFullName, repoFullName))
+      .orderBy(desc(pullRequest.createdAt));
+  }
+
+  async findByInstallationIds(installationIds: number[]) {
+    if (installationIds.length === 0) return [];
+    return await db
+      .select()
+      .from(pullRequest)
+      .where(inArray(pullRequest.installationId, installationIds))
       .orderBy(desc(pullRequest.createdAt));
   }
 

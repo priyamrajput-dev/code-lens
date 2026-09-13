@@ -22,6 +22,7 @@
     "typescript": "^5"
   },
   "dependencies": {
+    "@ai-sdk/google": "^4.0.69",
     "@openrouter/ai-sdk-provider": "^3.0.0",
     "@pinecone-database/pinecone": "^8.2.0",
     "ai": "^7.0.94",

@@ -4,6 +4,8 @@ import AppResponse from "../../common/utils/app-response.js";
 import { saveInstallationSchema, getReposQuerySchema } from "./github.validation.js";
 import { ValidationError, UnauthorizedError } from "../../common/utils/app-error.js";
 import { getZodFieldErrors } from "../../common/utils/zod-error.js";
+import { auth } from "../../lib/auth.js";
+import { fromNodeHeaders } from "better-auth/node";
 
 class GithubController {
   constructor(private readonly githubService: GithubService) {}
@@ -51,6 +53,45 @@ class GithubController {
     const { page } = this.parseReposQuery(req.query);
     const reposPage = await this.githubService.getRepos(req.session.user.id, page);
     AppResponse.ok(res, "Repositories retrieved", reposPage);
+  }
+
+  async handleCallback(req: Request, res: Response) {
+    const installationId = req.query.installation_id ? Number(req.query.installation_id) : null;
+    
+    // Resolve user session from cookies/headers if available
+    let userId: string | null = req.session?.user?.id || null;
+    if (!userId) {
+      try {
+        const session = await auth.api.getSession({
+          headers: fromNodeHeaders(req.headers),
+        });
+        if (session?.user?.id) {
+          userId = session.user.id;
+        }
+      } catch (err) {
+        console.warn("Could not retrieve session in handleCallback:", err);
+      }
+    }
+
+    // Determine redirect baseUrl dynamically from request headers
+    const proto = req.get("x-forwarded-proto") || req.protocol;
+    const host = req.get("x-forwarded-host") || req.get("host");
+    const baseUrl = host
+      ? `${proto}://${host}`
+      : (process.env.BETTER_AUTH_URL || process.env.CLIENT_URL || "http://localhost:3000");
+
+    if (installationId && userId) {
+      try {
+        await this.githubService.saveInstallation(userId, installationId);
+        return res.redirect(`${baseUrl}/dashboard/github?installed=true`);
+      } catch (err) {
+        console.error("Failed to save installation from callback:", err);
+      }
+    }
+
+    return res.redirect(
+      `${baseUrl}/dashboard/github${installationId ? `?installation_id=${installationId}` : ""}`,
+    );
   }
 }
 

@@ -4,10 +4,15 @@ import AppResponse from "../../common/utils/app-response.js";
 import { getGithubApp } from "../../lib/github-app.js";
 import { UnauthorizedError, BadRequestError } from "../../common/utils/app-error.js";
 
+import GithubRepository from "../github/github.repository.js";
+
 const REVIEWABLE_ACTIONS = ["opened", "synchronize", "reopened"];
 
 class ReviewsController {
-  constructor(private readonly reviewsService: ReviewsService) {}
+  constructor(
+    private readonly reviewsService: ReviewsService,
+    private readonly githubRepository?: GithubRepository,
+  ) {}
 
   async handleWebhook(req: Request, res: Response) {
     const rawPayload = typeof req.body === "string" ? req.body : JSON.stringify(req.body);
@@ -26,11 +31,18 @@ class ReviewsController {
       }
     }
 
+    const event = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
+
+    if (eventName === "installation" && event.action === "deleted" && event.installation?.id) {
+      if (this.githubRepository) {
+        await this.githubRepository.deleteInstallationByInstallationId(event.installation.id);
+      }
+      return AppResponse.ok(res, "Installation deleted webhook handled");
+    }
+
     if (eventName !== "pull_request") {
       return AppResponse.ok(res, "Event ignored");
     }
-
-    const event = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
 
     if (!REVIEWABLE_ACTIONS.includes(event.action)) {
       return AppResponse.ok(res, "Action not reviewable");
@@ -41,13 +53,35 @@ class ReviewsController {
   }
 
   async listReviews(req: Request, res: Response) {
-    const repoFullName = req.query.repo as string;
-    if (!repoFullName) {
-      throw new BadRequestError("repo query parameter is required");
+    const repoFullName = req.query.repo as string | undefined;
+    if (repoFullName) {
+      const reviews = await this.reviewsService.listReviewsForRepo(repoFullName);
+      return AppResponse.ok(res, "Reviews retrieved", reviews);
     }
 
-    const reviews = await this.reviewsService.listReviewsForRepo(repoFullName);
-    AppResponse.ok(res, "Reviews retrieved", reviews);
+    if (!req.session?.user?.id) throw new UnauthorizedError();
+    const reviews = await this.reviewsService.listReviewsForUser(req.session.user.id);
+    return AppResponse.ok(res, "User reviews retrieved", reviews);
+  }
+
+  async analyzeSnippet(req: Request, res: Response) {
+    const { code, language = "javascript", filename = "code.js" } = req.body as {
+      code: string;
+      language?: string;
+      filename?: string;
+    };
+
+    if (!code || typeof code !== "string") {
+      throw new BadRequestError("Code string is required");
+    }
+
+    const reviewResult = await this.reviewsService.analyzeCodeSnippet({
+      code,
+      language,
+      filename,
+    });
+
+    return AppResponse.ok(res, "Code review generated", reviewResult);
   }
 
   async triggerReview(req: Request, res: Response) {
