@@ -5,15 +5,6 @@ import { apiFetch } from "@/lib/api-client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import {
   Dialog,
   DialogContent,
@@ -31,8 +22,12 @@ import {
   FolderGit2,
   FileText,
   AlertCircle,
+  Copy,
+  Check,
+  ChevronRight,
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { ReviewMarkdownViewer } from "@/components/markdown/ReviewMarkdownViewer";
 
 export type PullRequestReview = {
   id: string;
@@ -53,6 +48,18 @@ export type PullRequestReview = {
 export function ReviewHistoryPage() {
   const [search, setSearch] = useState("");
   const [selectedReview, setSelectedReview] = useState<PullRequestReview | null>(null);
+  const [copiedFull, setCopiedFull] = useState(false);
+
+  const handleCopyFullReview = async () => {
+    if (!selectedReview?.reviewComment) return;
+    try {
+      await navigator.clipboard.writeText(selectedReview.reviewComment);
+      setCopiedFull(true);
+      setTimeout(() => setCopiedFull(false), 2000);
+    } catch (err) {
+      console.error("Failed to copy review markdown:", err);
+    }
+  };
 
   const { data: reviews = [], isLoading, isError } = useQuery<PullRequestReview[]>({
     queryKey: ["reviews-history"],
@@ -105,150 +112,228 @@ export function ReviewHistoryPage() {
         </Link>
       </div>
 
-      <div className="rounded-xl border border-border bg-card shadow-xs overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Pull Request</TableHead>
-              <TableHead>Repository</TableHead>
-              <TableHead>Author</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Reviewed</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {isLoading ? (
-              <TableRow>
-                <TableCell colSpan={6} className="text-center py-12 text-muted-foreground text-xs">
-                  Loading review records…
-                </TableCell>
-              </TableRow>
-            ) : isError ? (
-              <TableRow>
-                <TableCell colSpan={6} className="text-center py-12 text-destructive text-xs">
-                  Failed to load review history.
-                </TableCell>
-              </TableRow>
-            ) : filteredReviews.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={6} className="text-center py-12">
-                  <div className="flex flex-col items-center justify-center space-y-3">
-                    <div className="size-10 rounded-full bg-muted flex items-center justify-center text-muted-foreground">
-                      <History className="size-5" />
+      <div className="rounded-2xl border border-border bg-card shadow-xs overflow-hidden">
+        {/* Table/List Subheader */}
+        <div className="flex items-center justify-between px-5 py-3 border-b border-border/80 bg-secondary-bg/50 text-xs text-muted-foreground">
+          <div className="flex items-center gap-2">
+            <span className="font-semibold text-foreground">Pull Request Reviews</span>
+            <Badge variant="outline" className="font-mono text-[10px] px-1.5 py-0 border-border">
+              {filteredReviews.length}
+            </Badge>
+          </div>
+          <span className="hidden sm:inline-block text-[11px] text-muted-foreground/70">
+            Click any row to open AI evaluation
+          </span>
+        </div>
+
+        {/* Content Body */}
+        <div>
+          {isLoading ? (
+            <div className="text-center py-16 text-muted-foreground text-xs">
+              Loading review records…
+            </div>
+          ) : isError ? (
+            <div className="text-center py-16 text-destructive text-xs">
+              Failed to load review history.
+            </div>
+          ) : filteredReviews.length === 0 ? (
+            <div className="flex flex-col items-center justify-center p-12 text-center space-y-3">
+              <div className="size-10 rounded-full bg-muted flex items-center justify-center text-muted-foreground">
+                <History className="size-5" />
+              </div>
+              <p className="text-sm font-semibold text-foreground">No review records found</p>
+              <p className="text-xs text-muted-foreground max-w-sm">
+                Pull request reviews generated automatically via GitHub webhooks or live reviews will appear here.
+              </p>
+              <Link to="/dashboard/repos" className="pt-2">
+                <Button size="sm" variant="outline">
+                  Connect Your First Repository →
+                </Button>
+              </Link>
+            </div>
+          ) : (
+            <div className="divide-y divide-border/70">
+              {filteredReviews.map((review) => (
+                <div
+                  key={review.id}
+                  onClick={() => setSelectedReview(review)}
+                  className="group relative flex flex-col sm:flex-row sm:items-center justify-between p-4 sm:px-5 sm:py-3.5 hover:bg-muted/40 transition-all cursor-pointer gap-3 sm:gap-4"
+                >
+                  {/* Left Column: PR Icon & Details */}
+                  <div className="flex items-start sm:items-center gap-3.5 min-w-0 flex-1">
+                    <div className="size-9 rounded-xl bg-[#C86B16]/10 border border-[#C86B16]/20 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform mt-0.5 sm:mt-0">
+                      <GitPullRequest className="size-4 text-[#C86B16] dark:text-[#D9781C]" />
                     </div>
-                    <p className="text-sm font-semibold text-foreground">No review records found</p>
-                    <p className="text-xs text-muted-foreground max-w-sm">
-                      Pull request reviews generated automatically via GitHub webhooks or live reviews will appear here.
-                    </p>
-                    <Link to="/dashboard/repos" className="pt-2">
-                      <Button size="sm" variant="outline">
-                        Connect Your First Repository →
-                      </Button>
-                    </Link>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ) : (
-              filteredReviews.map((review) => (
-                <TableRow key={review.id} className="hover:bg-muted/30 transition-colors">
-                  <TableCell>
-                    <div className="flex flex-col">
-                      <div className="flex items-center gap-1.5 font-medium text-sm text-foreground">
-                        <GitPullRequest className="size-3.5 text-[#C86B16] dark:text-[#D9781C] shrink-0" />
-                        <span className="truncate max-w-md">{review.title}</span>
+
+                    <div className="flex flex-col min-w-0 flex-1">
+                      {/* Row 1: PR Title & PR Number */}
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="font-semibold text-sm text-foreground truncate group-hover:text-[#C86B16] dark:group-hover:text-[#D9781C] transition-colors">
+                          {review.title}
+                        </span>
+                        <Badge
+                          variant="outline"
+                          className="text-[10px] font-mono shrink-0 border-border bg-secondary-bg px-1.5 py-0"
+                        >
+                          PR #{review.prNumber}
+                        </Badge>
                       </div>
-                      <span className="text-xs font-mono text-muted-foreground mt-0.5">
-                        PR #{review.prNumber} • {review.baseBranch}
-                      </span>
+
+                      {/* Row 2: Repository, Author, Branch */}
+                      <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground mt-1">
+                        <span className="font-mono text-[11px] font-medium text-foreground/90 bg-muted/80 px-2 py-0.5 rounded border border-border/60">
+                          {review.repoFullName}
+                        </span>
+                        <span className="text-muted-foreground/40">•</span>
+                        <span className="font-mono text-[11px]">
+                          @{review.authorLogin || "unknown"}
+                        </span>
+                        <span className="text-muted-foreground/40 hidden sm:inline">•</span>
+                        <span className="text-[11px] font-mono text-muted-foreground hidden sm:inline">
+                          branch: <span className="text-foreground/80">{review.baseBranch}</span>
+                        </span>
+                      </div>
                     </div>
-                  </TableCell>
+                  </div>
 
-                  <TableCell className="text-xs font-mono text-muted-foreground">
-                    {review.repoFullName}
-                  </TableCell>
-
-                  <TableCell className="text-xs">
-                    <span className="font-mono text-muted-foreground">@{review.authorLogin || "unknown"}</span>
-                  </TableCell>
-
-                  <TableCell>
+                  {/* Right Column: Status, Evaluated Time, and Action Button (ALWAYS VISIBLE, NO DRAGGING!) */}
+                  <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-border/40">
+                    {/* Status Badge */}
                     <Badge
                       variant="outline"
                       className={
                         review.status === "reviewed"
-                          ? "border-emerald-500/30 text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 font-normal text-xs"
+                          ? "border-emerald-500/30 text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 font-normal text-xs gap-1 shrink-0"
                           : review.status === "processing"
-                          ? "border-blue-500/30 text-blue-600 dark:text-blue-400 bg-blue-500/10 font-normal text-xs"
-                          : "border-amber-500/30 text-amber-600 dark:text-amber-400 bg-amber-500/10 font-normal text-xs"
+                          ? "border-blue-500/30 text-blue-600 dark:text-blue-400 bg-blue-500/10 font-normal text-xs shrink-0"
+                          : "border-amber-500/30 text-amber-600 dark:text-amber-400 bg-amber-500/10 font-normal text-xs shrink-0"
                       }
                     >
-                      {review.status}
+                      {review.status === "reviewed" && <CheckCircle2 className="size-3" />}
+                      <span className="capitalize">{review.status}</span>
                     </Badge>
-                  </TableCell>
 
-                  <TableCell className="text-right text-xs text-muted-foreground">
-                    {review.reviewedAt
-                      ? formatDistanceToNow(new Date(review.reviewedAt), { addSuffix: true })
-                      : formatDistanceToNow(new Date(review.createdAt), { addSuffix: true })}
-                  </TableCell>
+                    {/* Evaluated Time */}
+                    <span className="text-xs text-muted-foreground font-mono shrink-0 whitespace-nowrap min-w-[80px] text-right">
+                      {review.reviewedAt
+                        ? formatDistanceToNow(new Date(review.reviewedAt), { addSuffix: true })
+                        : formatDistanceToNow(new Date(review.createdAt), { addSuffix: true })}
+                    </span>
 
-                  <TableCell className="text-right">
+                    {/* View Comments Action Button */}
                     <Button
-                      variant="outline"
                       size="xs"
-                      className="text-xs gap-1 border-border cursor-pointer hover:bg-muted"
-                      onClick={() => setSelectedReview(review)}
+                      variant="outline"
+                      className="text-xs gap-1.5 border-border shrink-0 bg-background group-hover:bg-foreground group-hover:text-background transition-all shadow-2xs cursor-pointer font-medium"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedReview(review);
+                      }}
                     >
                       <FileText className="size-3" />
-                      View Comments
+                      <span>View Comments</span>
+                      <ChevronRight className="size-3 text-muted-foreground group-hover:text-background transition-colors" />
                     </Button>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Review Details Dialog */}
       <Dialog open={!!selectedReview} onOpenChange={(open) => !open && setSelectedReview(null)}>
-        <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
+        <DialogContent className="w-[96vw] max-w-5xl sm:max-w-4xl md:max-w-5xl max-h-[88vh] p-0 gap-0 overflow-hidden flex flex-col bg-card border border-border/80 shadow-2xl rounded-2xl">
           {selectedReview && (
             <>
-              <DialogHeader>
-                <div className="flex items-center gap-2 text-xs font-mono text-muted-foreground mb-1">
-                  <span>{selectedReview.repoFullName}</span>
-                  <span>•</span>
-                  <span>PR #{selectedReview.prNumber}</span>
+              {/* Modal Header */}
+              <div className="p-5 sm:p-6 border-b border-border bg-secondary-bg/60 shrink-0">
+                <div className="flex flex-wrap items-center justify-between gap-3 mb-2.5">
+                  <div className="flex flex-wrap items-center gap-2 text-xs font-mono text-muted-foreground">
+                    <span className="font-semibold text-foreground bg-muted/80 px-2 py-0.5 rounded border border-border/60">
+                      {selectedReview.repoFullName}
+                    </span>
+                    <span>•</span>
+                    <span className="text-[#C86B16] dark:text-[#D9781C] font-semibold bg-[#C86B16]/10 px-2 py-0.5 rounded border border-[#C86B16]/20">
+                      PR #{selectedReview.prNumber}
+                    </span>
+                    <span>•</span>
+                    <span>
+                      Branch: <span className="text-foreground font-mono">{selectedReview.baseBranch}</span>
+                    </span>
+                    {selectedReview.status === "reviewed" && (
+                      <>
+                        <span>•</span>
+                        <Badge
+                          variant="outline"
+                          className="border-emerald-500/30 text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 text-[11px] font-medium gap-1"
+                        >
+                          <CheckCircle2 className="size-3" />
+                          Reviewed
+                        </Badge>
+                      </>
+                    )}
+                  </div>
+
+                  {/* Header Actions */}
+                  <div className="flex items-center gap-2 pr-8 sm:pr-6">
+                    <Button
+                      variant="outline"
+                      size="xs"
+                      onClick={handleCopyFullReview}
+                      className="gap-1.5 text-xs border-border cursor-pointer hover:bg-muted"
+                      title="Copy full review markdown to clipboard"
+                    >
+                      {copiedFull ? (
+                        <>
+                          <Check className="size-3 text-emerald-500" />
+                          <span className="text-emerald-600 dark:text-emerald-400 font-medium">Copied</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="size-3" />
+                          <span>Copy Review</span>
+                        </>
+                      )}
+                    </Button>
+
+                    <a
+                      href={`https://github.com/${selectedReview.repoFullName}/pull/${selectedReview.prNumber}`}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      <Button
+                        size="xs"
+                        className="gap-1.5 text-xs bg-foreground text-background hover:bg-foreground/90 cursor-pointer shadow-2xs"
+                      >
+                        <span>Open on GitHub</span>
+                        <ExternalLink className="size-3" />
+                      </Button>
+                    </a>
+                  </div>
                 </div>
-                <DialogTitle className="text-lg font-bold text-foreground">
+
+                <DialogTitle className="text-lg sm:text-xl font-bold text-foreground tracking-tight leading-snug">
                   {selectedReview.title}
                 </DialogTitle>
-                <DialogDescription className="text-xs">
-                  Authored by @{selectedReview.authorLogin || "unknown"} • Branch: {selectedReview.baseBranch}
-                </DialogDescription>
-              </DialogHeader>
 
-              <div className="space-y-4 pt-3 border-t border-border text-sm">
-                <div className="flex items-center justify-between text-xs text-muted-foreground">
-                  <span className="font-mono uppercase tracking-wider font-semibold">
-                    AI Review Evaluation
+                <DialogDescription className="text-xs text-muted-foreground mt-1.5 flex flex-wrap items-center gap-2">
+                  <span>
+                    Authored by <strong className="text-foreground font-medium">@{selectedReview.authorLogin || "unknown"}</strong>
                   </span>
-                  <a
-                    href={`https://github.com/${selectedReview.repoFullName}/pull/${selectedReview.prNumber}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-[#C86B16] dark:text-[#D9781C] hover:underline inline-flex items-center gap-1 font-medium"
-                  >
-                    Open on GitHub
-                    <ExternalLink className="size-3" />
-                  </a>
-                </div>
+                  <span>•</span>
+                  <span>
+                    {selectedReview.reviewedAt
+                      ? `Evaluated ${formatDistanceToNow(new Date(selectedReview.reviewedAt), { addSuffix: true })}`
+                      : `Created ${formatDistanceToNow(new Date(selectedReview.createdAt), { addSuffix: true })}`}
+                  </span>
+                </DialogDescription>
+              </div>
 
-                <div className="rounded-lg border border-border bg-[#0E0E0E] text-[#E0E0E0] p-4 font-mono text-xs overflow-x-auto whitespace-pre-wrap leading-relaxed">
-                  {selectedReview.reviewComment || "No review commentary was recorded."}
-                </div>
+              {/* Modal Body: Scrollable Review Content with Markdown & Code Highlighting */}
+              <div className="flex-1 overflow-y-auto p-5 sm:p-7 space-y-4 max-h-[calc(88vh-130px)]">
+                <ReviewMarkdownViewer content={selectedReview.reviewComment || ""} />
               </div>
             </>
           )}
