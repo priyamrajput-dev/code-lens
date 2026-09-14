@@ -69,6 +69,7 @@ web_modules/
 .env
 .env.*
 !.env.example
+!.env.production.example
 
 # Keys & Certificates
 *.pem

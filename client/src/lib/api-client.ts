@@ -1,8 +1,8 @@
 const getBaseUrl = () => {
-  if (typeof window !== "undefined") {
-    return ""; // Relative path to use current host + Vite /api proxy
-  }
-  return import.meta.env.VITE_SERVER_URL || "http://localhost:8080";
+  const configured = import.meta.env.VITE_SERVER_URL?.replace(/\/$/, "");
+  if (configured) return configured;
+  if (typeof window !== "undefined") return "";
+  return "http://localhost:8000";
 };
 
 export async function apiFetch<T = unknown>(
