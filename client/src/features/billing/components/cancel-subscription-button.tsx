@@ -25,10 +25,11 @@ export function CancelSubscriptionButton({ disabled }: { disabled?: boolean }) {
 
   return (
     <Button
-      variant="outline"
+      variant="destructive"
+      size="sm"
       disabled={disabled || loading}
       onClick={handleCancel}
-      className="text-destructive hover:bg-destructive/10 hover:text-destructive cursor-pointer"
+      className="cursor-pointer rounded-xl font-medium"
     >
       {loading ? "Canceling…" : "Cancel Subscription"}
     </Button>

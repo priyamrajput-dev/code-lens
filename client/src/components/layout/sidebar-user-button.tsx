@@ -8,10 +8,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { LogOut } from "lucide-react";
+import { LogOut, User } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-export function SidebarUserButton() {
+interface SidebarUserButtonProps {
+  compact?: boolean;
+}
+
+export function SidebarUserButton({ compact = false }: SidebarUserButtonProps) {
   const { data: session } = useSession();
   const navigate = useNavigate();
 
@@ -34,27 +38,29 @@ export function SidebarUserButton() {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger className="w-full flex items-center justify-start gap-3 px-2 py-3 rounded-lg hover:bg-muted/50 transition-colors text-left outline-none cursor-pointer">
-        <Avatar className="size-8">
+      <DropdownMenuTrigger className="w-full flex items-center justify-start gap-3 p-2 rounded-lg hover:bg-muted/70 transition-colors text-left outline-none cursor-pointer group">
+        <Avatar className="size-8 border border-border/80 shrink-0">
           {user.image ? (
             <AvatarImage src={user.image} alt={user.name || "User"} />
           ) : null}
-          <AvatarFallback>{initials}</AvatarFallback>
+          <AvatarFallback className="text-xs font-semibold bg-muted text-foreground">{initials}</AvatarFallback>
         </Avatar>
-        <div className="flex flex-col items-start text-left overflow-hidden flex-1">
-          <span className="text-sm font-medium leading-none truncate w-full">
-            {user.name}
-          </span>
-          <span className="text-xs text-muted-foreground truncate w-full mt-1">
-            {user.email}
-          </span>
-        </div>
+        {!compact && (
+          <div className="flex flex-col items-start text-left overflow-hidden flex-1">
+            <span className="text-xs font-semibold text-foreground leading-none truncate w-full group-hover:text-foreground">
+              {user.name}
+            </span>
+            <span className="text-[11px] text-muted-foreground truncate w-full mt-1">
+              {user.email}
+            </span>
+          </div>
+        )}
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-56">
+      <DropdownMenuContent align="end" className="w-56 rounded-xl border-border/80 shadow-lg">
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">{user.name}</p>
-            <p className="text-xs leading-none text-muted-foreground">
+            <p className="text-sm font-semibold leading-none text-foreground">{user.name}</p>
+            <p className="text-xs leading-none text-muted-foreground truncate">
               {user.email}
             </p>
           </div>

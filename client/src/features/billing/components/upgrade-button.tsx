@@ -77,7 +77,9 @@ export function UpgradeButton() {
     <Button
       onClick={handleUpgrade}
       disabled={loading}
-      className="bg-emerald-600 hover:bg-emerald-500 text-white gap-2 shadow-sm cursor-pointer"
+      variant="brand"
+      size="lg"
+      className="font-semibold gap-2 shadow-sm cursor-pointer rounded-xl"
     >
       <Sparkles className="size-4" />
       {loading ? "Opening checkout…" : "Upgrade to Pro"}

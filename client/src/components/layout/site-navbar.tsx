@@ -13,7 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Menu, X, LogOut, LayoutDashboard, FolderGit2, History, ArrowRight } from "lucide-react";
+import { Menu, X, LogOut, LayoutDashboard, FolderGit2, History, ArrowRight, ShieldCheck } from "lucide-react";
 import { GitHubIcon } from "@/features/auth/components/github-sign-in-form";
 import { cn } from "@/lib/utils";
 
@@ -59,15 +59,15 @@ export function SiteNavbar() {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/80 bg-background/85 backdrop-blur-md transition-colors">
+    <header className="sticky top-0 z-50 w-full border-b border-border/80 glass-nav transition-all duration-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
         {/* Left: Brand Logo */}
-        <Link to="/" className="flex items-center gap-2 hover:opacity-90 transition-opacity">
+        <Link to="/" className="flex items-center gap-2 hover:opacity-95 transition-opacity">
           <BrandLogo size={32} />
         </Link>
 
         {/* Center: Desktop Navigation */}
-        <nav className="hidden md:flex items-center gap-1 rounded-full border border-border/60 bg-card/40 px-3 py-1 text-xs font-medium backdrop-blur-xs">
+        <nav className="hidden md:flex items-center gap-1 rounded-full border border-border/80 bg-card/60 px-3 py-1 text-xs font-medium backdrop-blur-md shadow-2xs">
           {navLinks.map((link) => {
             const isActive =
               link.href === "/"
@@ -80,10 +80,10 @@ export function SiteNavbar() {
                 to={link.href}
                 onClick={(e) => handleNavClick(e, link.href)}
                 className={cn(
-                  "px-3 py-1.5 rounded-full transition-all duration-150 cursor-pointer",
+                  "px-3.5 py-1.5 rounded-full transition-all duration-200 cursor-pointer",
                   isActive
-                    ? "bg-foreground text-background font-semibold shadow-2xs"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted/40",
+                    ? "bg-foreground text-background font-semibold shadow-xs"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/60",
                 )}
               >
                 {link.label}
@@ -93,12 +93,12 @@ export function SiteNavbar() {
         </nav>
 
         {/* Right: Actions */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
           <a
             href="https://github.com/priyamrajput-dev"
             target="_blank"
             rel="noreferrer"
-            className="hidden sm:inline-flex size-8.5 items-center justify-center rounded-lg border border-border bg-card/70 hover:bg-card hover:border-foreground/20 text-muted-foreground hover:text-foreground transition-all duration-200"
+            className="hidden sm:inline-flex size-8 items-center justify-center rounded-lg border border-border/80 bg-card/60 hover:bg-card hover:border-foreground/25 text-muted-foreground hover:text-foreground transition-all duration-200 shadow-2xs"
             title="GitHub Repository"
           >
             <GitHubIcon className="size-4" />
@@ -109,37 +109,37 @@ export function SiteNavbar() {
           {isAuthenticated ? (
             <div className="flex items-center gap-2">
               <Link to="/dashboard" className="hidden sm:inline-block">
-                <Button variant="outline" size="sm" className="gap-1.5 border-border hover:bg-muted font-medium">
-                  <LayoutDashboard className="size-3.5" />
+                <Button variant="outline" size="sm" className="gap-1.5 font-medium border-border/80 hover:bg-card">
+                  <LayoutDashboard className="size-3.5 text-amber-500" />
                   Dashboard
                 </Button>
               </Link>
 
               <DropdownMenu>
                 <DropdownMenuTrigger className="flex items-center outline-none cursor-pointer">
-                  <Avatar className="size-8.5 border border-border">
+                  <Avatar className="size-8 border border-border/80 shadow-2xs transition-transform duration-200 hover:scale-105">
                     {user?.image ? <AvatarImage src={user.image} alt={user.name || "User"} /> : null}
-                    <AvatarFallback className="text-xs bg-muted text-foreground font-medium">{initials}</AvatarFallback>
+                    <AvatarFallback className="text-xs bg-muted text-foreground font-semibold">{initials}</AvatarFallback>
                   </Avatar>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56 mt-2">
+                <DropdownMenuContent align="end" className="w-56 mt-2 rounded-xl shadow-lg border-border/80">
                   <DropdownMenuLabel className="font-normal">
                     <div className="flex flex-col space-y-1">
-                      <p className="text-sm font-medium leading-none">{user?.name}</p>
+                      <p className="text-sm font-semibold leading-none text-foreground">{user?.name}</p>
                       <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={() => navigate("/dashboard")} className="cursor-pointer">
-                    <LayoutDashboard className="mr-2 size-4" />
+                    <LayoutDashboard className="mr-2 size-4 text-amber-500" />
                     Overview
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => navigate("/dashboard/repos")} className="cursor-pointer">
-                    <FolderGit2 className="mr-2 size-4" />
+                    <FolderGit2 className="mr-2 size-4 text-emerald-500" />
                     Repositories
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => navigate("/dashboard/history")} className="cursor-pointer">
-                    <History className="mr-2 size-4" />
+                    <History className="mr-2 size-4 text-blue-500" />
                     Review History
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
@@ -158,10 +158,11 @@ export function SiteNavbar() {
               <Link to="/sign-in">
                 <Button
                   size="sm"
-                  className="bg-foreground text-background hover:bg-foreground/90 font-medium px-3.5 shadow-2xs gap-1 cursor-pointer"
+                  variant="brand"
+                  className="font-medium px-4 shadow-sm gap-1.5 cursor-pointer rounded-lg"
                 >
                   Sign In
-                  <ArrowRight className="size-3.5 opacity-80" />
+                  <ArrowRight className="size-3.5 opacity-90" />
                 </Button>
               </Link>
             </div>
@@ -171,7 +172,7 @@ export function SiteNavbar() {
           <button
             type="button"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden inline-flex size-8.5 items-center justify-center rounded-lg border border-border bg-card/70 text-foreground cursor-pointer"
+            className="md:hidden inline-flex size-8 items-center justify-center rounded-lg border border-border/80 bg-card/70 text-foreground cursor-pointer transition-colors hover:bg-card"
             aria-label="Toggle menu"
           >
             {mobileMenuOpen ? <X className="size-4" /> : <Menu className="size-4" />}
@@ -181,7 +182,7 @@ export function SiteNavbar() {
 
       {/* Mobile Menu Drawer */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-b border-border bg-background/95 backdrop-blur-md px-4 py-4 space-y-2">
+        <div className="md:hidden border-b border-border bg-background/95 backdrop-blur-xl px-4 py-4 space-y-2 animate-in slide-in-from-top-2 duration-200">
           {navLinks.map((link) => (
             <Link
               key={link.label}
@@ -191,10 +192,10 @@ export function SiteNavbar() {
                 handleNavClick(e, link.href);
               }}
               className={cn(
-                "block px-3 py-2 rounded-md text-sm font-medium transition-colors cursor-pointer",
+                "block px-3 py-2.5 rounded-lg text-sm font-medium transition-colors cursor-pointer",
                 location.pathname === link.href
                   ? "bg-muted text-foreground font-semibold"
-                  : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
+                  : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
               )}
             >
               {link.label}
@@ -205,14 +206,14 @@ export function SiteNavbar() {
             <Link
               to="/dashboard"
               onClick={() => setMobileMenuOpen(false)}
-              className="block px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+              className="block px-3 py-2.5 rounded-lg text-sm font-medium text-amber-500 hover:bg-muted/60"
             >
-              Dashboard Overview
+              Dashboard Overview →
             </Link>
           )}
 
-          <div className="pt-2 border-t border-border flex items-center justify-between">
-            <span className="text-xs text-muted-foreground">CodeLens v1.0</span>
+          <div className="pt-3 border-t border-border/60 flex items-center justify-between">
+            <span className="text-xs text-muted-foreground font-mono">CodeLens v1.0</span>
             <a
               href="https://github.com/priyamrajput-dev"
               target="_blank"

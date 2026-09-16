@@ -98,11 +98,11 @@ export function CodeBlock({ code, language }: CodeBlockProps) {
   const highlightedHtml = highlightCode(code, language);
 
   return (
-    <div className="my-4 rounded-xl border border-[#242426] bg-[#0A0A0C] overflow-hidden shadow-lg font-mono text-left">
+    <div className="my-4 rounded-xl border border-[#1E2235] bg-[#07080C] overflow-hidden shadow-lg font-mono text-left">
       {/* Code Header Bar */}
-      <div className="flex items-center justify-between px-4 py-2 bg-[#121215] border-b border-[#202024] select-none">
+      <div className="flex items-center justify-between px-4 py-2 bg-[#11131F] border-b border-[#1E2235] select-none">
         <div className="flex items-center gap-2">
-          <FileCode className="size-3.5 text-[#C86B16] dark:text-[#D9781C]" />
+          <FileCode className="size-3.5 text-amber-500" />
           <span className="text-[11px] font-semibold text-muted-foreground font-mono tracking-wider">
             {displayLang}
           </span>
@@ -133,7 +133,7 @@ export function CodeBlock({ code, language }: CodeBlockProps) {
       </div>
 
       {/* Highlighted Code Area */}
-      <div className="overflow-x-auto p-4 text-[13px] leading-relaxed text-[#E2E8F0] bg-[#0A0A0C]">
+      <div className="overflow-x-auto p-4 text-[13px] leading-relaxed text-[#E2E8F0] bg-[#07080C]">
         <pre className="m-0 p-0 bg-transparent overflow-visible">
           <code
             className={`language-${language || "plain"}`}
@@ -199,15 +199,15 @@ export function ReviewMarkdownViewer({ content }: ReviewMarkdownViewerProps) {
 
             if (text.includes("critical") || text.includes("error") || text.includes("bug") || text.includes("❌")) {
               return (
-                <div className="flex items-center gap-2.5 text-sm font-semibold text-red-600 dark:text-red-400 bg-red-500/10 border border-red-500/20 px-3.5 py-2.5 rounded-xl mt-6 mb-3">
-                  <ShieldAlert className="size-4 shrink-0 text-red-500" />
+                <div className="flex items-center gap-2.5 text-sm font-semibold text-rose-600 dark:text-rose-400 bg-rose-500/10 border border-rose-500/20 px-3.5 py-2.5 rounded-xl mt-6 mb-3">
+                  <ShieldAlert className="size-4 shrink-0 text-rose-500" />
                   <span>{children}</span>
                 </div>
               );
             }
 
             return (
-              <h2 className="text-base font-bold text-foreground mt-6 mb-3 pb-1.5 border-b border-border/50">
+              <h2 className="text-base font-bold text-foreground mt-6 mb-3 pb-1.5 border-b border-border/60">
                 {children}
               </h2>
             );
@@ -237,8 +237,8 @@ export function ReviewMarkdownViewer({ content }: ReviewMarkdownViewerProps) {
 
             if (text.includes("critical") || text.includes("error") || text.includes("bug") || text.includes("❌")) {
               return (
-                <div className="flex items-center gap-2 text-sm font-semibold text-red-600 dark:text-red-400 bg-red-500/10 border border-red-500/20 px-3.5 py-2 rounded-xl mt-6 mb-3">
-                  <ShieldAlert className="size-4 shrink-0 text-red-500" />
+                <div className="flex items-center gap-2 text-sm font-semibold text-rose-600 dark:text-rose-400 bg-rose-500/10 border border-rose-500/20 px-3.5 py-2 rounded-xl mt-6 mb-3">
+                  <ShieldAlert className="size-4 shrink-0 text-rose-500" />
                   <span>{children}</span>
                 </div>
               );
@@ -272,7 +272,7 @@ export function ReviewMarkdownViewer({ content }: ReviewMarkdownViewerProps) {
           // Ordered list
           ol({ children }) {
             return (
-              <ol className="list-decimal pl-5 space-y-3 my-3 text-[14px] text-foreground/90 leading-relaxed marker:text-[#C86B16] dark:marker:text-[#D9781C] marker:font-semibold">
+              <ol className="list-decimal pl-5 space-y-3 my-3 text-[14px] text-foreground/90 leading-relaxed marker:text-amber-500 marker:font-semibold">
                 {children}
               </ol>
             );
@@ -304,7 +304,7 @@ export function ReviewMarkdownViewer({ content }: ReviewMarkdownViewerProps) {
 
             return (
               <code
-                className="px-1.5 py-0.5 rounded-md bg-muted/90 text-foreground font-mono text-[12px] border border-border/50 font-medium"
+                className="px-1.5 py-0.5 rounded-md bg-muted/90 text-foreground font-mono text-[12px] border border-border/60 font-medium"
                 {...props}
               >
                 {children}
@@ -320,7 +320,7 @@ export function ReviewMarkdownViewer({ content }: ReviewMarkdownViewerProps) {
           // Blockquote
           blockquote({ children }) {
             return (
-              <blockquote className="border-l-2 border-[#C86B16] dark:border-[#D9781C] bg-muted/20 pl-4 py-2 my-3 rounded-r-md text-[13px] text-muted-foreground italic">
+              <blockquote className="border-l-2 border-amber-500 bg-muted/20 pl-4 py-2 my-3 rounded-r-md text-[13px] text-muted-foreground italic">
                 {children}
               </blockquote>
             );
@@ -338,7 +338,7 @@ export function ReviewMarkdownViewer({ content }: ReviewMarkdownViewerProps) {
                 href={href}
                 target="_blank"
                 rel="noreferrer"
-                className="text-[#C86B16] dark:text-[#D9781C] hover:underline inline-flex items-center gap-0.5 font-medium"
+                className="text-amber-500 hover:text-amber-600 hover:underline inline-flex items-center gap-0.5 font-medium"
               >
                 {children}
                 <ExternalLink className="size-3 inline ml-0.5" />

@@ -5,12 +5,12 @@ import { BrandLogo } from "@/components/ui/brand-logo";
 
 export function DashboardSidebar() {
   return (
-    <aside className="hidden md:flex w-64 shrink-0 flex-col border-r border-border bg-card/50 backdrop-blur-sm h-screen">
-      <div className="p-5 border-b border-border flex items-center justify-between shrink-0">
+    <aside className="hidden md:flex w-64 shrink-0 flex-col border-r border-border/80 bg-card/60 backdrop-blur-md h-screen">
+      <div className="p-5 border-b border-border/80 flex items-center justify-between shrink-0">
         <Link to="/" className="hover:opacity-90 transition-opacity">
           <BrandLogo size={30} />
         </Link>
-        <span className="text-[10px] font-mono uppercase tracking-wider px-1.5 py-0.5 rounded border border-border text-muted-foreground bg-muted/40">
+        <span className="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-full border border-border/80 text-muted-foreground bg-muted/60 font-semibold">
           v1.0
         </span>
       </div>
@@ -19,7 +19,7 @@ export function DashboardSidebar() {
         <DashboardNav />
       </div>
 
-      <div className="p-3 border-t border-border bg-card/30 shrink-0">
+      <div className="p-3.5 border-t border-border/80 bg-card/40 shrink-0">
         <SidebarUserButton />
       </div>
     </aside>

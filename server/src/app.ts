@@ -35,8 +35,8 @@ export function createApplication(): Express {
     }),
   );
 
-  // Better Auth handler for Express 5 (Must be mounted before body parsers)
-  app.all("/api/auth/{*any}", toNodeHandler(auth));
+  // Better Auth handler for Express 5 (path-to-regexp v8 wildcard format)
+  app.all("/api/auth/*path", toNodeHandler(auth));
 
   app.use(express.json());
 
@@ -51,7 +51,7 @@ export function createApplication(): Express {
   const clientDistPath = path.resolve(__dirname, "../../client/dist");
   if (fs.existsSync(clientDistPath)) {
     app.use(express.static(clientDistPath));
-    app.get("{*any}", (req, res, next) => {
+    app.get("*path", (req, res, next) => {
       if (req.path.startsWith("/api")) {
         return next();
       }

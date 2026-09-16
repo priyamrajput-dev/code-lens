@@ -49,16 +49,21 @@ export function GithubPage() {
   }, [searchParams, setSearchParams, queryClient]);
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6 pb-10">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">GitHub App</h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Manage your GitHub App connection and webhook integration.
+        <div className="flex items-center gap-2 text-xs font-mono text-muted-foreground mb-1.5">
+          <span>Dashboard</span>
+          <span>/</span>
+          <span className="text-foreground font-semibold">GitHub App</span>
+        </div>
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">GitHub App</h1>
+        <p className="text-xs sm:text-sm text-muted-foreground mt-1">
+          Manage your GitHub App connection, webhooks, and repository permissions.
         </p>
       </div>
 
       {isLoading ? (
-        <Skeleton className="h-64 max-w-2xl rounded-lg" />
+        <Skeleton className="h-64 max-w-2xl rounded-2xl" />
       ) : (
         <GithubConnectCard
           installation={

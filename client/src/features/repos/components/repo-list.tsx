@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Lock, Unlock, Star, Search } from "lucide-react";
+import { Lock, Unlock, Star, Search, FolderGit2 } from "lucide-react";
 import { SyncRepoButton } from "./sync-repo-button";
 import type { DashboardRepo, RepoSyncStatus, GithubInstallationStatus } from "@/features/dashboard/lib/types";
 import { apiFetch } from "@/lib/api-client";
@@ -87,16 +87,16 @@ export function RepoList() {
 
   if (!isStatusLoading && !isConnected) {
     return (
-      <Card className="flex flex-col items-center justify-center p-12 text-center border-dashed">
-        <div className="flex size-14 items-center justify-center rounded-full bg-muted mb-4 border border-border">
+      <Card className="flex flex-col items-center justify-center p-12 text-center border-dashed border-border/80 rounded-2xl bg-card/60">
+        <div className="flex size-14 items-center justify-center rounded-2xl bg-muted mb-4 border border-border/80 shadow-xs">
           <GitHubIcon className="size-7 text-muted-foreground" />
         </div>
-        <h3 className="text-lg font-semibold tracking-tight">GitHub App Not Connected</h3>
-        <p className="text-sm text-muted-foreground max-w-md mt-1 mb-6">
+        <h3 className="text-lg font-bold tracking-tight text-foreground">GitHub App Not Connected</h3>
+        <p className="text-xs sm:text-sm text-muted-foreground max-w-md mt-1 mb-6 leading-relaxed">
           Connect your GitHub account or organization to view, manage, and sync your repositories for automated AI reviews.
         </p>
         <Link to="/dashboard/github">
-          <Button size="lg">
+          <Button size="lg" variant="brand" className="font-semibold rounded-xl">
             Connect GitHub App
           </Button>
         </Link>
@@ -108,26 +108,26 @@ export function RepoList() {
     <div className="flex flex-1 flex-col gap-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <Tabs value={filter} onValueChange={(v) => setFilter(v as Filter)}>
-          <TabsList>
-            <TabsTrigger value="all">All ({counts.all})</TabsTrigger>
-            <TabsTrigger value="public">Public ({counts.public})</TabsTrigger>
-            <TabsTrigger value="private">Private ({counts.private})</TabsTrigger>
+          <TabsList className="bg-card/70 border border-border/80 p-1 rounded-xl">
+            <TabsTrigger value="all" className="rounded-lg text-xs">All ({counts.all})</TabsTrigger>
+            <TabsTrigger value="public" className="rounded-lg text-xs">Public ({counts.public})</TabsTrigger>
+            <TabsTrigger value="private" className="rounded-lg text-xs">Private ({counts.private})</TabsTrigger>
           </TabsList>
         </Tabs>
         <div className="relative max-w-xs w-full">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
           <Input
             placeholder="Search repositories…"
-            className="pl-9"
+            className="pl-9 bg-card/80"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
       </div>
 
-      <div className="rounded-lg border bg-card shadow-sm overflow-hidden">
+      <div className="rounded-2xl border border-border/80 bg-card shadow-xs overflow-x-auto">
         <Table>
-          <TableHeader>
+          <TableHeader className="bg-secondary-bg/50">
             <TableRow>
               <TableHead>Repository</TableHead>
               <TableHead>Visibility</TableHead>
@@ -141,54 +141,61 @@ export function RepoList() {
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={7} className="text-center py-12 text-muted-foreground text-xs">
                   Loading repositories…
                 </TableCell>
               </TableRow>
             ) : isError ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={7} className="text-center py-12 text-destructive text-xs">
                   Failed to load repositories. Please ensure GitHub App is installed.
                 </TableCell>
               </TableRow>
             ) : visibleRepos.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={7} className="text-center py-12 text-muted-foreground text-xs">
                   No repositories found.
                 </TableCell>
               </TableRow>
             ) : (
               visibleRepos.map((repo) => (
-                <TableRow key={repo.id}>
+                <TableRow key={repo.id} className="hover:bg-muted/40 transition-colors">
                   <TableCell>
                     <div className="flex flex-col">
-                      <span className="font-semibold text-sm">{repo.name}</span>
-                      <span className="text-xs text-muted-foreground">{repo.fullName}</span>
+                      <span className="font-semibold text-sm text-foreground">{repo.name}</span>
+                      <span className="text-xs text-muted-foreground font-mono">{repo.fullName}</span>
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Badge variant="outline" className="gap-1 font-normal text-xs">
+                    <Badge variant="outline" className="gap-1 font-normal text-xs rounded-md">
                       {repo.visibility === "private" ? (
                         <Lock className="size-3 text-amber-500" />
                       ) : (
                         <Unlock className="size-3 text-emerald-500" />
                       )}
-                      {repo.visibility}
+                      <span className="capitalize">{repo.visibility}</span>
                     </Badge>
                   </TableCell>
                   <TableCell className="text-xs font-mono text-muted-foreground">
-                    {repo.defaultBranch}
+                    <span className="bg-muted/60 px-2 py-0.5 rounded border border-border/60">{repo.defaultBranch}</span>
                   </TableCell>
-                  <TableCell className="text-xs">
-                    {repo.language ?? "—"}
+                  <TableCell className="text-xs font-medium">
+                    {repo.language ? (
+                      <span className="inline-flex items-center gap-1.5">
+                        <span className="size-2 rounded-full bg-amber-500/80" />
+                        {repo.language}
+                      </span>
+                    ) : (
+                      "—"
+                    )}
                   </TableCell>
                   <TableCell className="text-right">
-                    <span className="inline-flex items-center justify-end gap-1 text-xs text-muted-foreground">
-                      <Star className="size-3 text-amber-500" />
+                    <span className="inline-flex items-center justify-end gap-1 text-xs text-muted-foreground font-mono">
+                      <Star className="size-3 text-amber-500 fill-amber-500/20" />
                       {repo.stars}
                     </span>
                   </TableCell>
-                  <TableCell className="text-right text-xs text-muted-foreground">
+                  <TableCell className="text-right text-xs text-muted-foreground font-mono">
                     {formatDistanceToNow(new Date(repo.updatedAt), { addSuffix: true })}
                   </TableCell>
                   <TableCell className="text-right">

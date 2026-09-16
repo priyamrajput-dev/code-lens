@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import type { RepoSyncStatus } from "@/features/dashboard/lib/types";
 import { apiFetch } from "@/lib/api-client";
 import { toast } from "sonner";
-import { RefreshCw } from "lucide-react";
+import { RefreshCw, CheckCircle2 } from "lucide-react";
 
 type SyncRepoButtonProps = {
   repoFullName: string;
@@ -28,7 +28,7 @@ export const SyncRepoButton = ({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["repos"] });
       queryClient.invalidateQueries({ queryKey: ["repo-sync-statuses"] });
-      toast.success(`Sync triggered for ${repoFullName}`);
+      toast.success(`Vector sync triggered for ${repoFullName}`);
     },
     onError: (error: Error) => {
       toast.error(`Failed to sync: ${error.message}`);
@@ -40,14 +40,14 @@ export const SyncRepoButton = ({
 
   return (
     <Button
-      size="sm"
-      variant="outline"
+      size="xs"
+      variant={syncStatus === "synced" ? "outline" : "brand"}
       disabled={isSyncing}
       onClick={() => syncMutation.mutate()}
-      className="gap-2 h-8 text-xs cursor-pointer"
+      className="gap-1.5 h-7 text-[11px] font-medium cursor-pointer rounded-lg shadow-2xs"
     >
-      <RefreshCw className={`size-3 ${isSyncing ? "animate-spin" : ""}`} />
-      {isSyncing ? "Syncing…" : syncStatus === "synced" ? "Re-sync" : "Sync"}
+      <RefreshCw className={`size-3 ${isSyncing ? "animate-spin text-amber-400" : ""}`} />
+      {isSyncing ? "Syncing…" : syncStatus === "synced" ? "Re-sync" : "Sync Index"}
     </Button>
   );
 };

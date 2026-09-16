@@ -6,9 +6,10 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex h-screen w-full bg-background relative overflow-hidden">
       {/* Background subtle technical grid */}
-      <div className="absolute inset-0 bg-tech-grid opacity-25 pointer-events-none mask-radial-hero" />
+      <div className="absolute inset-0 bg-tech-grid opacity-20 pointer-events-none mask-radial-hero" />
+      <div className="fixed top-10 left-1/3 w-[600px] h-[300px] bg-amber-500/5 dark:bg-amber-500/8 blur-[120px] rounded-full pointer-events-none" />
 
-      {/* Fixed Sidebar */}
+      {/* Desktop Fixed Sidebar */}
       <DashboardSidebar />
 
       {/* Main Content Area */}

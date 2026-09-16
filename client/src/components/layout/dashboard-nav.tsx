@@ -31,11 +31,15 @@ export const NAV_ITEMS = [
   },
 ] as const;
 
-export function DashboardNav() {
+interface DashboardNavProps {
+  onItemClick?: () => void;
+}
+
+export function DashboardNav({ onItemClick }: DashboardNavProps) {
   const location = useLocation();
 
   return (
-    <nav className="flex flex-col space-y-1">
+    <nav className="flex flex-col space-y-1.5">
       {NAV_ITEMS.map((item) => {
         const Icon = item.icon;
         const isActive =
@@ -46,17 +50,23 @@ export function DashboardNav() {
           <Link
             key={item.href}
             to={item.href}
+            onClick={onItemClick}
             className={cn(
-              "flex items-center gap-3 rounded-lg px-3 py-2 text-xs font-medium transition-all duration-150 relative group",
+              "flex items-center gap-3 rounded-lg px-3 py-2 text-xs font-medium transition-all duration-150 relative group cursor-pointer",
               isActive
-                ? "bg-foreground text-background font-semibold shadow-2xs"
-                : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
+                ? "bg-foreground text-background font-semibold shadow-xs"
+                : "text-muted-foreground hover:bg-muted/70 hover:text-foreground",
             )}
           >
-            <Icon className={cn("size-4 shrink-0", isActive ? "text-background" : "text-muted-foreground group-hover:text-foreground")} />
-            <span>{item.title}</span>
+            <Icon
+              className={cn(
+                "size-4 shrink-0 transition-colors",
+                isActive ? "text-background" : "text-muted-foreground group-hover:text-foreground"
+              )}
+            />
+            <span className="flex-1 truncate">{item.title}</span>
             {isActive && (
-              <span className="absolute right-2 size-1.5 rounded-full bg-[#C86B16] dark:bg-[#D9781C]" />
+              <span className="size-1.5 rounded-full bg-amber-500 shadow-xs" />
             )}
           </Link>
         );
