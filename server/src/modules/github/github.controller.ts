@@ -6,6 +6,7 @@ import { ValidationError, UnauthorizedError } from "../../common/utils/app-error
 import { getZodFieldErrors } from "../../common/utils/zod-error.js";
 import { auth } from "../../lib/auth.js";
 import { fromNodeHeaders } from "better-auth/node";
+import { env } from "../../common/config/env.js";
 
 class GithubController {
   constructor(private readonly githubService: GithubService) {}
@@ -73,24 +74,19 @@ class GithubController {
       }
     }
 
-    // Determine redirect baseUrl dynamically from request headers
-    const proto = req.get("x-forwarded-proto") || req.protocol;
-    const host = req.get("x-forwarded-host") || req.get("host");
-    const baseUrl = host
-      ? `${proto}://${host}`
-      : (process.env.BETTER_AUTH_URL || process.env.CLIENT_URL || "http://localhost:3000");
+    const clientBaseUrl = env.CLIENT_URL.replace(/\/$/, "");
 
     if (installationId && userId) {
       try {
         await this.githubService.saveInstallation(userId, installationId);
-        return res.redirect(`${baseUrl}/dashboard/github?installed=true`);
+        return res.redirect(`${clientBaseUrl}/dashboard/github?installed=true`);
       } catch (err) {
         console.error("Failed to save installation from callback:", err);
       }
     }
 
     return res.redirect(
-      `${baseUrl}/dashboard/github${installationId ? `?installation_id=${installationId}` : ""}`,
+      `${clientBaseUrl}/dashboard/github${installationId ? `?installation_id=${installationId}` : ""}`,
     );
   }
 }

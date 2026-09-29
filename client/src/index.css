@@ -3,6 +3,7 @@
 @import "shadcn/tailwind.css";
 
 @custom-variant dark (&:is(.dark *));
+@custom-variant reduced-motion (@media (prefers-reduced-motion: reduce));
 
 @theme inline {
   --color-background: var(--background);
@@ -122,10 +123,88 @@
   }
 }
 
-/* Technical developer grid background pattern */
+/* ===== Animations ===== */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes slide-down {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+@keyframes pulse-soft {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out;
+}
+.animate-slide-up {
+  animation: slide-up 0.35s ease-out;
+}
+.animate-slide-down {
+  animation: slide-down 0.3s ease-out;
+}
+.animate-scale-in {
+  animation: scale-in 0.25s ease-out;
+}
+
+/* Page transition wrapper */
+.page-enter {
+  animation: fade-in 0.4s ease-out;
+}
+
+/* Shimmer loading effect */
+.shimmer {
+  background: linear-gradient(90deg, transparent 0%, color-mix(in srgb, var(--muted) 40%, transparent) 50%, transparent 100%);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+/* ===== Reduced Motion ===== */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .animate-fade-in,
+  .animate-slide-up,
+  .animate-slide-down,
+  .animate-scale-in,
+  .page-enter,
+  .shimmer,
+  .animate-pulse-soft {
+    animation: none !important;
+  }
+  .shimmer {
+    background: var(--muted);
+  }
+}
+
+/* ===== Technical developer grid background pattern ===== */
 .bg-tech-grid {
   background-size: 32px 32px;
-  background-image: 
+  background-image:
     linear-gradient(to right, color-mix(in srgb, var(--border) 60%, transparent) 1px, transparent 1px),
     linear-gradient(to bottom, color-mix(in srgb, var(--border) 60%, transparent) 1px, transparent 1px);
 }
@@ -145,7 +224,7 @@
   -webkit-mask-image: radial-gradient(ellipse 90% 70% at 50% 25%, #000 35%, transparent 100%);
 }
 
-/* Glassmorphism & Modern Card Elevation */
+/* ===== Glassmorphism & Modern Card Elevation ===== */
 .glass-panel {
   background: color-mix(in srgb, var(--card) 80%, transparent);
   backdrop-filter: blur(16px);
@@ -168,7 +247,7 @@
   -webkit-backdrop-filter: blur(12px);
 }
 
-/* Subtle glow effects */
+/* ===== Subtle glow effects ===== */
 .glow-accent {
   box-shadow: 0 0 40px -8px color-mix(in srgb, var(--accent-brand) 30%, transparent);
 }
@@ -181,12 +260,12 @@
   box-shadow: 0 0 35px -8px rgba(244, 63, 94, 0.25);
 }
 
-/* Subtle inner border bevel */
+/* ===== Subtle inner border bevel ===== */
 .inner-bevel {
   box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.07);
 }
 
-/* Custom modern scrollbars */
+/* ===== Custom modern scrollbars ===== */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -203,4 +282,64 @@
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--muted-foreground);
+}
+
+/* ===== Focus Visible Styles ===== */
+*:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+/* ===== Selection ===== */
+::selection {
+  background: color-mix(in srgb, var(--accent-brand) 25%, transparent);
+  color: var(--foreground);
+}
+
+/* ===== Scrollbar for dark mode ===== */
+.dark ::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--border) 60%, transparent);
+}
+
+/* ===== Smooth transitions for theme changes ===== */
+*,
+*::before,
+*::after {
+  transition-property: background-color, border-color, color, fill, stroke, opacity;
+  transition-duration: 150ms;
+  transition-timing-function: ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0ms !important;
+  }
+}
+
+/* ===== Line clamp utility ===== */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ===== Touch target improvements ===== */
+@media (hover: none) and (pointer: coarse) {
+  button, a, [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
 }

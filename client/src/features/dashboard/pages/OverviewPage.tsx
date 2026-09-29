@@ -6,6 +6,7 @@ import { apiFetch } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   FolderGit2,
   Sparkles,
@@ -19,6 +20,7 @@ import {
 import { formatDistanceToNow } from "date-fns";
 import type { PullRequestReview } from "@/features/history/pages/ReviewHistoryPage";
 import type { GithubInstallationStatus } from "@/features/dashboard/lib/types";
+import { cn } from "@/lib/utils";
 
 export function OverviewPage() {
   const { data: session } = useSession();
@@ -31,7 +33,7 @@ export function OverviewPage() {
     return "Good evening";
   }, []);
 
-  const { data: reviews = [] } = useQuery<PullRequestReview[]>({
+  const { data: reviews = [], isLoading: reviewsLoading } = useQuery<PullRequestReview[]>({
     queryKey: ["reviews-history"],
     queryFn: async () => {
       const res = await apiFetch<PullRequestReview[]>("/api/reviews");
@@ -39,7 +41,7 @@ export function OverviewPage() {
     },
   });
 
-  const { data: statusData } = useQuery<GithubInstallationStatus>({
+  const { data: statusData, isLoading: statusLoading } = useQuery<GithubInstallationStatus>({
     queryKey: ["github-status"],
     queryFn: async () => {
       const res = await apiFetch<GithubInstallationStatus>("/api/github/status");
@@ -55,9 +57,9 @@ export function OverviewPage() {
   const recentReviews = reviews.slice(0, 3);
 
   return (
-    <div className="flex flex-col gap-8 pb-10">
+    <div className="flex flex-col gap-8 pb-10 animate-fade-in">
       {/* Top Greeting & Action Banner */}
-      <div className="rounded-2xl border border-border/80 bg-gradient-to-r from-card/90 via-card/70 to-card/40 p-6 sm:p-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 shadow-sm backdrop-blur-md relative overflow-hidden">
+      <div className="rounded-2xl border border-border/60 bg-gradient-to-r from-card/90 via-card/70 to-card/40 p-6 sm:p-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 shadow-sm backdrop-blur-sm relative overflow-hidden">
         <div className="absolute top-0 right-0 w-80 h-full bg-amber-500/5 blur-3xl pointer-events-none" />
 
         <div className="space-y-2 relative z-10">
@@ -85,7 +87,7 @@ export function OverviewPage() {
             </Button>
           </Link>
           <Link to="/dashboard/github">
-            <Button size="lg" variant="outline" className="border-border/80 text-foreground text-xs cursor-pointer rounded-xl">
+            <Button size="lg" variant="outline" className="border-border/70 text-foreground text-xs cursor-pointer rounded-xl">
               GitHub App Status
             </Button>
           </Link>
@@ -93,90 +95,109 @@ export function OverviewPage() {
       </div>
 
       {/* Metrics Stat Grid */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card className="hover:border-foreground/20 transition-all duration-200 shadow-xs">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-xs font-mono uppercase tracking-wider text-muted-foreground">
-              Reviews Run
-            </CardTitle>
-            <div className="size-8 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500">
-              <Sparkles className="size-4" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold font-mono text-foreground">
-              {reviews.length}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Automated PR & diff evaluations
-            </p>
-          </CardContent>
-        </Card>
+      {(reviewsLoading || statusLoading) ? (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {[...Array(4)].map((_, i) => (
+            <Card key={i} className="shadow-xs" size="sm">
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <Skeleton className="h-3 w-24" />
+                <Skeleton className="size-8 rounded-lg" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-8 w-20" />
+                <Skeleton className="h-3 w-32 mt-2" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <Card className="hover:border-foreground/20 hover:shadow-sm transition-all duration-200 shadow-xs" interactive>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-xs font-mono uppercase tracking-wider text-muted-foreground">
+                Reviews Run
+              </CardTitle>
+              <div className="size-8 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500">
+                <Sparkles className="size-4" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold font-mono text-foreground">
+                {reviews.length}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Automated PR & diff evaluations
+              </p>
+            </CardContent>
+          </Card>
 
-        <Card className="hover:border-foreground/20 transition-all duration-200 shadow-xs">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-xs font-mono uppercase tracking-wider text-muted-foreground">
-              GitHub Status
-            </CardTitle>
-            <div className="size-8 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-500">
-              <GitPullRequest className="size-4" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center gap-2">
-              <span className="text-2xl font-bold font-mono text-foreground">
-                {isConnected ? "Active" : "Off"}
-              </span>
-              <span className={isConnected ? "size-2 rounded-full bg-emerald-500 animate-pulse" : "size-2 rounded-full bg-amber-500"} />
-            </div>
-            <p className="text-xs text-muted-foreground mt-1 truncate">
-              {isConnected ? `@${statusData?.accountLogin} connected` : "App not connected"}
-            </p>
-          </CardContent>
-        </Card>
+          <Card className="hover:border-foreground/20 hover:shadow-sm transition-all duration-200 shadow-xs" interactive>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-xs font-mono uppercase tracking-wider text-muted-foreground">
+                GitHub Status
+              </CardTitle>
+              <div className="size-8 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-500">
+                <GitPullRequest className="size-4" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center gap-2">
+                <span className="text-2xl font-bold font-mono text-foreground">
+                  {isConnected ? "Active" : "Off"}
+                </span>
+                <span className={cn(
+                  isConnected ? "size-2 rounded-full bg-emerald-500 animate-pulse" : "size-2 rounded-full bg-amber-500"
+                )} />
+              </div>
+              <p className="text-xs text-muted-foreground mt-1 truncate">
+                {isConnected ? `@${statusData?.accountLogin} connected` : "App not connected"}
+              </p>
+            </CardContent>
+          </Card>
 
-        <Card className="hover:border-foreground/20 transition-all duration-200 shadow-xs">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-xs font-mono uppercase tracking-wider text-muted-foreground">
-              Vector Indexing
-            </CardTitle>
-            <div className="size-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500">
-              <Zap className="size-4" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold font-mono text-foreground">
-              Pinecone
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Codebase-aware RAG vector search
-            </p>
-          </CardContent>
-        </Card>
+          <Card className="hover:border-foreground/20 hover:shadow-sm transition-all duration-200 shadow-xs" interactive>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-xs font-mono uppercase tracking-wider text-muted-foreground">
+                Vector Indexing
+              </CardTitle>
+              <div className="size-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500">
+                <Zap className="size-4" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold font-mono text-foreground">
+                Pinecone
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Codebase-aware RAG vector search
+              </p>
+            </CardContent>
+          </Card>
 
-        <Card className="hover:border-foreground/20 transition-all duration-200 shadow-xs">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-xs font-mono uppercase tracking-wider text-muted-foreground">
-              AI Engine
-            </CardTitle>
-            <div className="size-8 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-500">
-              <ShieldCheck className="size-4" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold font-mono text-foreground">
-              Gemini 2.0
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Flash multi-pass static analysis
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+          <Card className="hover:border-foreground/20 hover:shadow-sm transition-all duration-200 shadow-xs" interactive>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-xs font-mono uppercase tracking-wider text-muted-foreground">
+                AI Engine
+              </CardTitle>
+              <div className="size-8 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-500">
+                <ShieldCheck className="size-4" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold font-mono text-foreground">
+                Gemini 2.0
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Flash multi-pass static analysis
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       {/* Recent Reviews & Activity Section */}
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
             <h2 className="text-lg font-semibold tracking-tight text-foreground">Recent Pull Request Reviews</h2>
             <p className="text-xs text-muted-foreground">
@@ -184,15 +205,15 @@ export function OverviewPage() {
             </p>
           </div>
 
-          <Link to="/dashboard/history" className="text-xs text-amber-500 hover:text-amber-600 font-medium inline-flex items-center gap-1">
+          <Link to="/dashboard/history" className="text-xs text-amber-500 hover:text-amber-600 font-medium inline-flex items-center gap-1 shrink-0">
             View All History
             <ArrowRight className="size-3" />
           </Link>
         </div>
 
-        {recentReviews.length === 0 ? (
-          <Card className="border-dashed border-border/80 text-center p-8 bg-card/40">
-            <div className="flex flex-col items-center justify-center space-y-2">
+        {recentReviews.length === 0 && !reviewsLoading ? (
+          <Card className="border-dashed border-border/60 text-center p-8 bg-card/40">
+            <div className="flex flex-col items-center justify-center space-y-3">
               <div className="size-12 rounded-full bg-muted/60 flex items-center justify-center mb-2">
                 <Clock className="size-6 text-muted-foreground/60" />
               </div>
@@ -209,12 +230,22 @@ export function OverviewPage() {
               </div>
             </div>
           </Card>
+        ) : reviewsLoading ? (
+          <div className="space-y-3">
+            {[...Array(3)].map((_, i) => (
+              <Card key={i} className="shadow-xs p-4.5">
+                <Skeleton className="h-4 w-48" />
+                <Skeleton className="h-3 w-64 mt-2" />
+              </Card>
+            ))}
+          </div>
         ) : (
           <div className="grid gap-3">
             {recentReviews.map((review) => (
-              <div
+              <Card
                 key={review.id}
-                className="rounded-xl border border-border/80 bg-card p-4.5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 hover:border-foreground/25 hover:shadow-xs transition-all"
+                className="hover:border-foreground/20 hover:shadow-sm transition-all duration-200 shadow-xs p-4.5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
+                interactive
               >
                 <div className="space-y-1.5 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
@@ -240,18 +271,18 @@ export function OverviewPage() {
                 </div>
 
                 <Link to="/dashboard/history" className="shrink-0">
-                  <Button size="xs" variant="outline" className="text-xs border-border/80 hover:bg-muted rounded-lg">
+                  <Button size="xs" variant="outline" className="text-xs border-border/70 hover:bg-muted rounded-lg">
                     View Details →
                   </Button>
                 </Link>
-              </div>
+              </Card>
             ))}
           </div>
         )}
       </div>
 
       {/* Getting Started Guide */}
-      <Card className="border-border/80 bg-card/60 backdrop-blur-xs">
+      <Card className="border-border/60 bg-card/50 backdrop-blur-sm" interactive>
         <CardHeader className="pb-3">
           <CardTitle className="text-base font-semibold text-foreground tracking-tight">
             Getting Started with Automated Reviews
@@ -276,7 +307,7 @@ export function OverviewPage() {
             <div>
               <p className="font-semibold text-foreground text-xs">2. Index Repository Codebases</p>
               <p className="text-muted-foreground mt-0.5 leading-relaxed">
-                Click &quot;Sync&quot; on your repositories in the Repositories tab to create a Pinecone vector index for codebase-aware PR feedback.
+                Click "Sync" on your repositories in the Repositories tab to create a Pinecone vector index for codebase-aware PR feedback.
               </p>
             </div>
           </div>

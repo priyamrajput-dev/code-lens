@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "bun run --watch src/server.ts",
     "start": "bun run src/server.ts",
+    "ngrok": "ngrok http 8080 --url https://slaw-walnut-showy.ngrok-free.dev",
+    "tunnel": "ngrok http 8080 --url https://slaw-walnut-showy.ngrok-free.dev",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio"

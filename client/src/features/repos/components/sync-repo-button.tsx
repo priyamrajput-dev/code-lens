@@ -41,13 +41,32 @@ export const SyncRepoButton = ({
   return (
     <Button
       size="xs"
-      variant={syncStatus === "synced" ? "outline" : "brand"}
+      variant={syncStatus === "synced" ? "outline" : syncStatus === "failed" ? "destructive" : "brand"}
       disabled={isSyncing}
       onClick={() => syncMutation.mutate()}
       className="gap-1.5 h-7 text-[11px] font-medium cursor-pointer rounded-lg shadow-2xs"
     >
-      <RefreshCw className={`size-3 ${isSyncing ? "animate-spin text-amber-400" : ""}`} />
-      {isSyncing ? "Syncing…" : syncStatus === "synced" ? "Re-sync" : "Sync Index"}
+      {isSyncing ? (
+        <>
+          <RefreshCw className="size-3 animate-spin text-amber-400" />
+          Syncing…
+        </>
+      ) : syncStatus === "synced" ? (
+        <>
+          <CheckCircle2 className="size-3 text-emerald-500" />
+          Re-sync
+        </>
+      ) : syncStatus === "failed" ? (
+        <>
+          <RefreshCw className="size-3" />
+          Retry Sync
+        </>
+      ) : (
+        <>
+          <RefreshCw className="size-3" />
+          Sync Index
+        </>
+      )}
     </Button>
   );
 };

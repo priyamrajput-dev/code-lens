@@ -4,6 +4,7 @@ import { SiteNavbar } from "@/components/layout/site-navbar";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 import {
   ShieldAlert,
   Zap,
@@ -12,7 +13,6 @@ import {
   GitPullRequest,
   Database,
   ArrowRight,
-  Terminal,
   Sparkles,
   ChevronRight,
   Copy,
@@ -24,7 +24,6 @@ import {
   RotateCcw,
   ShieldCheck,
   AlertTriangle,
-  FolderGit2,
   CheckCircle,
 } from "lucide-react";
 
@@ -106,33 +105,33 @@ export async function authenticateUser(req: Request, db: Database) {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-background selection:bg-amber-500/20 relative overflow-x-hidden">
+    <div className="min-h-screen flex flex-col bg-background relative overflow-x-hidden">
       <SiteNavbar />
 
       {/* Global Background Grid & Ambient Glows */}
-      <div className="fixed inset-0 pointer-events-none z-0 bg-tech-grid opacity-25 mask-radial-hero" />
-      <div className="fixed top-16 left-1/2 -translate-x-1/2 w-[750px] h-[350px] bg-amber-500/10 dark:bg-amber-500/8 blur-[130px] rounded-full pointer-events-none z-0" />
+      <div className="fixed inset-0 pointer-events-none z-0 bg-tech-grid opacity-20 mask-radial-hero" />
+      <div className="fixed top-1/3 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-amber-500/8 dark:bg-amber-500/15 blur-[140px] rounded-full pointer-events-none" />
 
       {/* Hero Section */}
-      <section className="relative z-10 pt-14 pb-20 md:pt-24 md:pb-32 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full">
+      <section className="relative z-10 pt-20 pb-32 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
           {/* Left Column: Headline & Call to Actions */}
           <div className="lg:col-span-7 flex flex-col items-start text-left space-y-6">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-border/80 bg-card/60 backdrop-blur-md text-xs font-mono shadow-xs">
-              <span className="relative flex size-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
-                <span className="relative inline-flex rounded-full size-2 bg-amber-500" />
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-border/60 bg-card/50 backdrop-blur-sm text-xs font-mono shadow-sm">
+              <span className="relative flex items-center">
+                <span className="absolute inline-flex h-2 w-2 rounded-full bg-amber-500" />
+                <span className="relative w-2 h-2 rounded-full bg-amber-500" />
               </span>
-              <span className="font-semibold text-foreground tracking-wide uppercase text-[11px]">
+              <span className="font-semibold text-foreground tracking-wide text-[11px]">
                 Autonomous PR Code Reviews
               </span>
               <span className="text-muted-foreground">•</span>
               <span className="text-muted-foreground text-[11px]">Pinecone RAG + Gemini 2.0</span>
             </div>
 
-            <h1 className="text-4xl sm:text-6xl lg:text-7xl font-bold tracking-tight text-foreground leading-[1.08]">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold tracking-tight text-foreground leading-[1.05]">
               Write better code. <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-foreground via-foreground/90 to-amber-500 dark:to-amber-400">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-foreground via-foreground/90 to-amber-500 dark:to-amber-400 font-extrabold">
                 Ship with confidence.
               </span>
             </h1>
@@ -141,38 +140,36 @@ export async function authenticateUser(req: Request, db: Database) {
               Review your pull requests with a 24/7 intelligent AI reviewer that catches bugs, security flaws, and performance regressions using deep codebase context.
             </p>
 
-            <div className="flex flex-wrap items-center gap-3.5 pt-2">
+            <div className="flex flex-wrap items-center gap-4 pt-2">
               <Link to="/sign-in">
                 <Button
                   size="lg"
                   variant="brand"
-                  className="font-semibold px-6 py-5.5 rounded-xl shadow-md gap-2 text-xs sm:text-sm cursor-pointer"
+                  className="font-semibold px-6 py-4 rounded-xl shadow-md gap-2 text-xs sm:text-sm cursor-pointer"
                 >
                   Get Started Free
                   <ArrowRight className="size-4" />
                 </Button>
               </Link>
-              <a href="#how-it-works" onClick={scrollToHowItWorks}>
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="border-border/80 bg-card/70 hover:bg-card text-foreground font-medium px-5 py-5.5 rounded-xl text-xs sm:text-sm cursor-pointer gap-2 backdrop-blur-xs"
-                >
-                  <Play className="size-3.5 fill-amber-500 text-amber-500" />
-                  Watch Interactive Demo
-                </Button>
-              </a>
+              <button
+                type="button"
+                onClick={scrollToHowItWorks}
+                className="inline-flex items-center gap-2 px-5 py-4 rounded-xl border border-border/60 bg-card/50 hover:bg-card text-foreground font-medium text-sm transition-all duration-200"
+              >
+                <Play className="size-3.5 fill-amber-500 text-amber-500" />
+                Watch Interactive Demo
+              </button>
             </div>
 
             {/* Quick Benefits Checklist */}
-            <div className="pt-6 flex flex-wrap items-center gap-6 text-xs text-muted-foreground border-t border-border/70 w-full">
+            <div className="pt-6 flex flex-wrap items-center gap-6 text-xs text-muted-foreground border-t border-border/50 w-full">
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="size-4 text-emerald-500 shrink-0" />
                 <span>Zero configuration required</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="size-4 text-emerald-500 shrink-0" />
-                <span>Automated GitHub PR webhooks</span>
+                <span>Automated GitHub webhooks</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="size-4 text-emerald-500 shrink-0" />
@@ -183,7 +180,7 @@ export async function authenticateUser(req: Request, db: Database) {
 
           {/* Right Column: Interactive Code Reviewer Visual */}
           <div className="lg:col-span-5 w-full">
-            <div className="relative rounded-2xl border border-border/90 bg-[#07080C] text-[#F8FAFC] shadow-2xl overflow-hidden font-mono text-xs">
+            <div className="relative rounded-2xl border border-border/80 bg-[#07080C] text-[#F8FAFC] shadow-xl overflow-hidden font-mono text-xs">
               {/* Terminal Window Header Bar */}
               <div className="flex items-center justify-between px-4 py-3 bg-[#11131F] border-b border-[#1E2235]">
                 <div className="flex items-center gap-2">
@@ -195,8 +192,9 @@ export async function authenticateUser(req: Request, db: Database) {
                 <button
                   type="button"
                   onClick={copyCode}
-                  className="text-slate-400 hover:text-white transition-colors p-1 cursor-pointer"
+                  className="text-slate-400 hover:text-white transition-colors p-1 rounded-lg cursor-pointer"
                   title="Copy sample snippet"
+                  aria-label={copiedSample ? "Code copied" : "Copy sample snippet"}
                 >
                   {copiedSample ? <Check className="size-3.5 text-emerald-400" /> : <Copy className="size-3.5" />}
                 </button>
@@ -246,14 +244,14 @@ export async function authenticateUser(req: Request, db: Database) {
                 {/* Quick Action */}
                 <div className="pt-1 flex items-center justify-between text-[11px]">
                   <span className="text-slate-500">Gemini 2.0 • Pinecone RAG</span>
-                  <a
-                    href="#how-it-works"
+                  <button
+                    type="button"
                     onClick={scrollToHowItWorks}
-                    className="text-amber-400 hover:underline font-medium inline-flex items-center gap-1 cursor-pointer"
+                    className="text-amber-400 hover:underline font-medium inline-flex items-center gap-1"
                   >
                     Explore demo walkthrough
                     <ChevronRight className="size-3" />
-                  </a>
+                  </button>
                 </div>
               </div>
             </div>
@@ -262,13 +260,13 @@ export async function authenticateUser(req: Request, db: Database) {
       </section>
 
       {/* Interactive Video Demo Walkthrough Section */}
-      <section id="how-it-works" className="relative z-10 py-24 border-t border-border/80 bg-card/20 scroll-mt-20">
+      <section id="how-it-works" className="relative z-10 py-32 border-t border-border/60 bg-card/20 scroll-mt-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto mb-12 space-y-3">
             <Badge variant="brand" className="text-[11px] font-mono uppercase tracking-wider font-semibold">
               Interactive Walkthrough
             </Badge>
-            <h2 className="text-3xl sm:text-5xl font-bold tracking-tight text-foreground">
+            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground">
               Watch CodeLens Review a Pull Request
             </h2>
             <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
@@ -277,14 +275,14 @@ export async function authenticateUser(req: Request, db: Database) {
           </div>
 
           {/* Video Player Container */}
-          <div className="max-w-5xl mx-auto rounded-2xl border border-border/90 bg-[#07080C] text-[#F8FAFC] shadow-2xl overflow-hidden font-mono">
+          <div className="max-w-5xl mx-auto rounded-2xl border border-border/70 bg-[#07080C] text-[#F8FAFC] shadow-xl overflow-hidden font-mono">
             {/* Top Player Browser Bar */}
-            <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 bg-[#11131F] border-b border-[#1E2235]">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-4 py-3 bg-[#11131F] border-b border-[#1E2235]">
               <div className="flex items-center gap-2">
                 <div className="size-2.5 rounded-full bg-[#F43F5E]/90" />
                 <div className="size-2.5 rounded-full bg-[#F59E0B]/90" />
                 <div className="size-2.5 rounded-full bg-[#10B981]/90" />
-                <span className="ml-2 text-xs text-slate-400 truncate">
+                <span className="ml-2 text-xs text-slate-400 truncate max-w-48">
                   github.com/priyamrajput-dev/Cursor_UI_Clone/pull/42
                 </span>
               </div>
@@ -300,8 +298,8 @@ export async function authenticateUser(req: Request, db: Database) {
             {/* Video Canvas Stage */}
             <div className="p-4 sm:p-8 min-h-[380px] bg-[#090A0F] flex flex-col justify-center">
               {demoStep === 1 && (
-                <div className="space-y-4 animate-in fade-in duration-300">
-                  <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-[#1E2235]">
+                <div className="space-y-4 animate-fade-in">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#1E2235]">
                     <div className="flex items-center gap-2">
                       <GitPullRequest className="size-4 text-emerald-400" />
                       <span className="font-semibold text-sm text-[#F8FAFC]">
@@ -348,8 +346,8 @@ export async function authenticateUser(req: Request, db: Database) {
               )}
 
               {demoStep === 2 && (
-                <div className="space-y-4 animate-in fade-in duration-300">
-                  <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-[#1E2235]">
+                <div className="space-y-4 animate-fade-in">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#1E2235]">
                     <div className="flex items-center gap-2">
                       <Cpu className="size-4 text-amber-400" />
                       <span className="font-semibold text-sm text-[#F8FAFC]">
@@ -404,8 +402,8 @@ export async function authenticateUser(req: Request, db: Database) {
               )}
 
               {demoStep === 3 && (
-                <div className="space-y-4 animate-in fade-in duration-300">
-                  <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-[#1E2235]">
+                <div className="space-y-4 animate-fade-in">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#1E2235]">
                     <div className="flex items-center gap-2">
                       <ShieldCheck className="size-4 text-emerald-400" />
                       <span className="font-semibold text-sm text-[#F8FAFC]">
@@ -475,15 +473,16 @@ export async function authenticateUser(req: Request, db: Database) {
               </div>
 
               {/* Control Buttons & Timers */}
-              <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div className="flex items-center gap-3">
                   <button
                     type="button"
                     onClick={() => setIsPlaying(!isPlaying)}
-                    className="size-8 rounded-lg bg-[#181A27] hover:bg-[#202438] text-[#F8FAFC] flex items-center justify-center transition-colors cursor-pointer"
+                    className="size-9 rounded-lg bg-[#181A27] hover:bg-[#202438] text-[#F8FAFC] flex items-center justify-center transition-colors"
                     title={isPlaying ? "Pause video" : "Play video"}
+                    aria-label={isPlaying ? "Pause demo" : "Play demo"}
                   >
-                    {isPlaying ? <Pause className="size-3.5" /> : <Play className="size-3.5 fill-current" />}
+                    {isPlaying ? <Pause className="size-4" /> : <Play className="size-4 fill-current" />}
                   </button>
 
                   <button
@@ -493,13 +492,14 @@ export async function authenticateUser(req: Request, db: Database) {
                       setProgress(0);
                       setIsPlaying(true);
                     }}
-                    className="size-8 rounded-lg bg-[#181A27] hover:bg-[#202438] text-slate-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+                    className="size-9 rounded-lg bg-[#181A27] hover:bg-[#202438] text-slate-400 hover:text-white flex items-center justify-center transition-colors"
                     title="Restart from beginning"
+                    aria-label="Restart demo"
                   >
-                    <RotateCcw className="size-3.5" />
+                    <RotateCcw className="size-4" />
                   </button>
 
-                  <span className="text-xs text-slate-400 font-mono">
+                  <span className="text-xs text-slate-400 font-mono" aria-label="Demo progress">
                     {demoStep === 1 ? "00:04" : demoStep === 2 ? "00:10" : "00:18"} / 00:20
                   </span>
                 </div>
@@ -509,33 +509,39 @@ export async function authenticateUser(req: Request, db: Database) {
                   <button
                     type="button"
                     onClick={() => handleSelectStep(1)}
-                    className={`px-3 py-1 rounded-lg text-[11px] transition-colors cursor-pointer ${
+                    className={cn(
+                      "px-3 py-1.5 rounded-lg text-[11px] transition-colors",
                       demoStep === 1
-                        ? "bg-[#202438] text-white font-semibold shadow-xs"
-                        : "text-slate-400 hover:text-slate-200"
-                    }`}
+                        ? "bg-[#202438] text-white font-semibold shadow-sm"
+                        : "text-slate-400 hover:text-slate-200 hover:bg-[#181A27]"
+                    )}
+                    aria-pressed={demoStep === 1}
                   >
                     1. Pull Request
                   </button>
                   <button
                     type="button"
                     onClick={() => handleSelectStep(2)}
-                    className={`px-3 py-1 rounded-lg text-[11px] transition-colors cursor-pointer ${
+                    className={cn(
+                      "px-3 py-1.5 rounded-lg text-[11px] transition-colors",
                       demoStep === 2
-                        ? "bg-[#202438] text-white font-semibold shadow-xs"
-                        : "text-slate-400 hover:text-slate-200"
-                    }`}
+                        ? "bg-[#202438] text-white font-semibold shadow-sm"
+                        : "text-slate-400 hover:text-slate-200 hover:bg-[#181A27]"
+                    )}
+                    aria-pressed={demoStep === 2}
                   >
                     2. AI Vector Scan
                   </button>
                   <button
                     type="button"
                     onClick={() => handleSelectStep(3)}
-                    className={`px-3 py-1 rounded-lg text-[11px] transition-colors cursor-pointer ${
+                    className={cn(
+                      "px-3 py-1.5 rounded-lg text-[11px] transition-colors",
                       demoStep === 3
-                        ? "bg-[#202438] text-white font-semibold shadow-xs"
-                        : "text-slate-400 hover:text-slate-200"
-                    }`}
+                        ? "bg-[#202438] text-white font-semibold shadow-sm"
+                        : "text-slate-400 hover:text-slate-200 hover:bg-[#181A27]"
+                    )}
+                    aria-pressed={demoStep === 3}
                   >
                     3. Bot Comment
                   </button>
@@ -546,13 +552,15 @@ export async function authenticateUser(req: Request, db: Database) {
 
           {/* 3 Step Interactive Cards Under Player */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto mt-8">
-            <div
+            <button
+              type="button"
               onClick={() => handleSelectStep(1)}
-              className={`rounded-xl border p-5 transition-all cursor-pointer ${
+              className={cn(
+                "w-full text-left rounded-xl border p-5 transition-all",
                 demoStep === 1
-                  ? "border-amber-500 bg-card shadow-md"
-                  : "border-border/80 bg-card/60 hover:bg-card hover:border-foreground/20"
-              }`}
+                  ? "border-amber-500 bg-card shadow-lg"
+                  : "border-border/60 bg-card/50 hover:bg-card hover:border-foreground/30"
+              )}
             >
               <div className="flex items-center justify-between mb-2">
                 <span className="font-mono text-sm font-bold text-amber-500">01</span>
@@ -562,15 +570,17 @@ export async function authenticateUser(req: Request, db: Database) {
               <p className="text-xs text-muted-foreground leading-relaxed">
                 Work natively in your GitHub git flow. Webhooks trigger the review automatically with zero manual steps.
               </p>
-            </div>
+            </button>
 
-            <div
+            <button
+              type="button"
               onClick={() => handleSelectStep(2)}
-              className={`rounded-xl border p-5 transition-all cursor-pointer ${
+              className={cn(
+                "w-full text-left rounded-xl border p-5 transition-all",
                 demoStep === 2
-                  ? "border-amber-500 bg-card shadow-md"
-                  : "border-border/80 bg-card/60 hover:bg-card hover:border-foreground/20"
-              }`}
+                  ? "border-amber-500 bg-card shadow-lg"
+                  : "border-border/60 bg-card/50 hover:bg-card hover:border-foreground/30"
+              )}
             >
               <div className="flex items-center justify-between mb-2">
                 <span className="font-mono text-sm font-bold text-amber-500">02</span>
@@ -580,15 +590,17 @@ export async function authenticateUser(req: Request, db: Database) {
               <p className="text-xs text-muted-foreground leading-relaxed">
                 Pinecone vector similarity queries and Gemini 2.0 inspect syntax, security rules, and architecture patterns.
               </p>
-            </div>
+            </button>
 
-            <div
+            <button
+              type="button"
               onClick={() => handleSelectStep(3)}
-              className={`rounded-xl border p-5 transition-all cursor-pointer ${
+              className={cn(
+                "w-full text-left rounded-xl border p-5 transition-all",
                 demoStep === 3
-                  ? "border-amber-500 bg-card shadow-md"
-                  : "border-border/80 bg-card/60 hover:bg-card hover:border-foreground/20"
-              }`}
+                  ? "border-amber-500 bg-card shadow-lg"
+                  : "border-border/60 bg-card/50 hover:bg-card hover:border-foreground/30"
+              )}
             >
               <div className="flex items-center justify-between mb-2">
                 <span className="font-mono text-sm font-bold text-amber-500">03</span>
@@ -598,7 +610,7 @@ export async function authenticateUser(req: Request, db: Database) {
               <p className="text-xs text-muted-foreground leading-relaxed">
                 Actionable comments and 1-click suggested diffs are posted right into the pull request review conversation.
               </p>
-            </div>
+            </button>
           </div>
         </div>
       </section>
@@ -619,67 +631,79 @@ export async function authenticateUser(req: Request, db: Database) {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {/* Feature 1 */}
-          <div className="rounded-xl border border-border/80 bg-card/60 p-6 space-y-3 hover:border-foreground/25 hover:shadow-md transition-all">
-            <div className="size-10 rounded-xl bg-amber-500/10 border border-amber-500/25 flex items-center justify-center text-amber-500 shadow-xs">
+          <div className="rounded-xl border border-border/60 bg-card/50 p-6 space-y-3 hover:border-foreground/25 hover:shadow-sm transition-all">
+            <div className="size-10 rounded-xl bg-amber-500/15 border border-amber-500/25 flex items-center justify-center text-amber-500 shadow-sm">
               <ShieldAlert className="size-5" />
             </div>
-            <h3 className="text-base font-semibold text-foreground tracking-tight">Security & Vulnerability Audits</h3>
-            <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+            <h3 className="text-base font-semibold text-foreground tracking-tight">
+              Security & Vulnerability Audits
+            </h3>
+            <p className="text-sm text-muted-foreground leading-relaxed">
               Catches SQL injections, authentication bypasses, exposed API secrets, unsafe regexes, and unvalidated user inputs.
             </p>
           </div>
 
           {/* Feature 2 */}
-          <div className="rounded-xl border border-border/80 bg-card/60 p-6 space-y-3 hover:border-foreground/25 hover:shadow-md transition-all">
-            <div className="size-10 rounded-xl bg-amber-500/10 border border-amber-500/25 flex items-center justify-center text-amber-500 shadow-xs">
+          <div className="rounded-xl border border-border/60 bg-card/50 p-6 space-y-3 hover:border-foreground/25 hover:shadow-sm transition-all">
+            <div className="size-10 rounded-xl bg-amber-500/15 border border-amber-500/25 flex items-center justify-center text-amber-500 shadow-sm">
               <Zap className="size-5" />
             </div>
-            <h3 className="text-base font-semibold text-foreground tracking-tight">Performance Regression Checks</h3>
-            <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+            <h3 className="text-base font-semibold text-foreground tracking-tight">
+              Performance Regression Checks
+            </h3>
+            <p className="text-sm text-muted-foreground leading-relaxed">
               Flags N+1 queries, unindexed queries, memory leaks, unmemoized render cascades, and heavy synchronous loops.
             </p>
           </div>
 
           {/* Feature 3 */}
-          <div className="rounded-xl border border-border/80 bg-card/60 p-6 space-y-3 hover:border-foreground/25 hover:shadow-md transition-all">
-            <div className="size-10 rounded-xl bg-amber-500/10 border border-amber-500/25 flex items-center justify-center text-amber-500 shadow-xs">
+          <div className="rounded-xl border border-border/60 bg-card/50 p-6 space-y-3 hover:border-foreground/25 hover:shadow-sm transition-all">
+            <div className="size-10 rounded-xl bg-amber-500/15 border border-amber-500/25 flex items-center justify-center text-amber-500 shadow-sm">
               <GitPullRequest className="size-5" />
             </div>
-            <h3 className="text-base font-semibold text-foreground tracking-tight">GitHub Native Webhooks</h3>
-            <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+            <h3 className="text-base font-semibold text-foreground tracking-tight">
+              GitHub Native Webhooks
+            </h3>
+            <p className="text-sm text-muted-foreground leading-relaxed">
               Listens to pull request events in real time. The moment a PR is opened or synchronized, CodeLens analyzes the git patch.
             </p>
           </div>
 
           {/* Feature 4 */}
-          <div className="rounded-xl border border-border/80 bg-card/60 p-6 space-y-3 hover:border-foreground/25 hover:shadow-md transition-all">
-            <div className="size-10 rounded-xl bg-amber-500/10 border border-amber-500/25 flex items-center justify-center text-amber-500 shadow-xs">
+          <div className="rounded-xl border border-border/60 bg-card/50 p-6 space-y-3 hover:border-foreground/25 hover:shadow-sm transition-all">
+            <div className="size-10 rounded-xl bg-amber-500/15 border border-amber-500/25 flex items-center justify-center text-amber-500 shadow-sm">
               <Database className="size-5" />
             </div>
-            <h3 className="text-base font-semibold text-foreground tracking-tight">Pinecone Vector RAG</h3>
-            <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+            <h3 className="text-base font-semibold text-foreground tracking-tight">
+              Pinecone Vector RAG
+            </h3>
+            <p className="text-sm text-muted-foreground leading-relaxed">
               Chunks and indexes entire repository codebases to provide reviews with full context into your modules and types.
             </p>
           </div>
 
           {/* Feature 5 */}
-          <div className="rounded-xl border border-border/80 bg-card/60 p-6 space-y-3 hover:border-foreground/25 hover:shadow-md transition-all">
-            <div className="size-10 rounded-xl bg-amber-500/10 border border-amber-500/25 flex items-center justify-center text-amber-500 shadow-xs">
+          <div className="rounded-xl border border-border/60 bg-card/50 p-6 space-y-3 hover:border-foreground/25 hover:shadow-sm transition-all">
+            <div className="size-10 rounded-xl bg-amber-500/15 border border-amber-500/25 flex items-center justify-center text-amber-500 shadow-sm">
               <Layers className="size-5" />
             </div>
-            <h3 className="text-base font-semibold text-foreground tracking-tight">Architecture & DRY Evaluation</h3>
-            <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+            <h3 className="text-base font-semibold text-foreground tracking-tight">
+              Architecture & DRY Evaluation
+            </h3>
+            <p className="text-sm text-muted-foreground leading-relaxed">
               Highlights duplicate code, tight coupling, SOLID violations, missing null checks, and unclear naming conventions.
             </p>
           </div>
 
           {/* Feature 6 */}
-          <div className="rounded-xl border border-border/80 bg-card/60 p-6 space-y-3 hover:border-foreground/25 hover:shadow-md transition-all">
-            <div className="size-10 rounded-xl bg-amber-500/10 border border-amber-500/25 flex items-center justify-center text-amber-500 shadow-xs">
+          <div className="rounded-xl border border-border/60 bg-card/50 p-6 space-y-3 hover:border-foreground/25 hover:shadow-sm transition-all">
+            <div className="size-10 rounded-xl bg-amber-500/15 border border-amber-500/25 flex items-center justify-center text-amber-500 shadow-sm">
               <Code2 className="size-5" />
             </div>
-            <h3 className="text-base font-semibold text-foreground tracking-tight">1-Click Actionable Code Fixes</h3>
-            <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+            <h3 className="text-base font-semibold text-foreground tracking-tight">
+              1-Click Actionable Code Fixes
+            </h3>
+            <p className="text-sm text-muted-foreground leading-relaxed">
               Generates ready-to-merge markdown diff suggestions directly inside GitHub pull request comment threads.
             </p>
           </div>
@@ -687,7 +711,7 @@ export async function authenticateUser(req: Request, db: Database) {
       </section>
 
       {/* Real Review Experience Preview */}
-      <section className="relative z-10 py-20 border-t border-border/80 bg-card/20">
+      <section className="relative z-10 py-20 border-t border-border/60 bg-card/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto mb-12 space-y-3">
             <Badge variant="brand" className="text-[11px] font-mono uppercase tracking-wider font-semibold">
@@ -701,10 +725,10 @@ export async function authenticateUser(req: Request, db: Database) {
             </p>
           </div>
 
-          <div className="rounded-2xl border border-border/80 bg-card shadow-xl p-6 sm:p-8">
+          <div className="rounded-2xl border border-border/70 bg-card shadow-xl p-6 sm:p-8">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
               {/* Review Score Card */}
-              <div className="lg:col-span-4 flex flex-col justify-between p-6 rounded-xl border border-border/80 bg-secondary-bg">
+              <div className="lg:col-span-4 flex flex-col justify-between p-6 rounded-xl border border-border/70 bg-secondary-bg">
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-mono uppercase tracking-wider text-muted-foreground">
@@ -725,7 +749,7 @@ export async function authenticateUser(req: Request, db: Database) {
                   </p>
                 </div>
 
-                <div className="pt-6 border-t border-border/80 space-y-2.5">
+                <div className="pt-6 border-t border-border/60 space-y-2.5">
                   <div className="flex items-center justify-between text-xs">
                     <span className="flex items-center gap-2 text-muted-foreground">
                       <span className="size-2 rounded-full bg-emerald-500" />
@@ -769,7 +793,7 @@ export async function authenticateUser(req: Request, db: Database) {
                   <p className="text-xs text-muted-foreground leading-relaxed">
                     This query executes sequentially inside a loop and will introduce severe latency with larger datasets (N+1 query antipattern).
                   </p>
-                  <div className="rounded-lg border border-border/80 bg-[#07080C] text-slate-300 p-3 text-[11px] font-mono">
+                  <div className="rounded-lg border border-border/60 bg-[#07080C] text-slate-300 p-3 text-[11px] font-mono">
                     <span className="text-emerald-400">// Recommended Fix:</span>
                     <br />
                     const userIds = users.map(u =&gt; u.id);
@@ -779,7 +803,7 @@ export async function authenticateUser(req: Request, db: Database) {
                 </div>
 
                 {/* Finding 2 */}
-                <div className="rounded-xl border border-border/80 bg-card p-4.5 space-y-2.5">
+                <div className="rounded-xl border border-border/60 bg-card p-4.5 space-y-2.5">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <span className="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/30">
@@ -803,16 +827,16 @@ export async function authenticateUser(req: Request, db: Database) {
       </section>
 
       {/* Call to Action Section */}
-      <section className="relative z-10 py-20 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto w-full text-center">
-        <div className="rounded-3xl border border-border/80 bg-gradient-to-b from-card/90 via-card/60 to-card/30 p-8 sm:p-14 shadow-2xl space-y-6 relative overflow-hidden backdrop-blur-md">
-          <div className="absolute -right-20 -top-20 size-60 rounded-full bg-amber-500/10 blur-3xl pointer-events-none" />
-          <div className="absolute -left-20 -bottom-20 size-60 rounded-full bg-emerald-500/10 blur-3xl pointer-events-none" />
-          
+      <section className="relative z-10 py-20 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto w-full">
+        <div className="rounded-3xl border border-border/60 bg-gradient-to-b from-card/90 via-card/50 to-card/20 p-8 sm:p-12 shadow-xl space-y-6 relative overflow-hidden backdrop-blur-sm">
+          <div className="absolute -right-24 -top-24 size-60 rounded-full bg-amber-500/8 dark:bg-amber-500/12 blur-3xl pointer-events-none" />
+          <div className="absolute -left-24 -bottom-24 size-60 rounded-full bg-emerald-500/5 dark:bg-emerald-500/8 blur-3xl pointer-events-none" />
+
           <Badge variant="brand" className="text-[11px] font-mono uppercase tracking-wider font-semibold">
             Ready to ship cleaner code?
           </Badge>
 
-          <h2 className="text-3xl sm:text-5xl font-bold tracking-tight text-foreground max-w-2xl mx-auto leading-tight">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-foreground max-w-2xl mx-auto leading-tight">
             Start reviewing your code in seconds.
           </h2>
 
@@ -820,18 +844,20 @@ export async function authenticateUser(req: Request, db: Database) {
             Connect your GitHub account to enable automatic PR reviews for your team with codebase RAG context.
           </p>
 
-          <div className="flex flex-wrap items-center justify-center gap-3.5 pt-2">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
             <Link to="/sign-in">
-              <Button size="lg" variant="brand" className="font-semibold px-6 py-5.5 rounded-xl shadow-md gap-2 text-xs sm:text-sm cursor-pointer">
+              <Button size="lg" variant="brand" className="font-semibold px-6 py-4 rounded-xl shadow-md gap-2 text-sm cursor-pointer">
                 Connect GitHub & Protect PRs
                 <ArrowRight className="size-4" />
               </Button>
             </Link>
-            <a href="#how-it-works" onClick={scrollToHowItWorks}>
-              <Button size="lg" variant="outline" className="border-border/80 bg-card/60 hover:bg-card text-foreground font-medium px-5 py-5.5 rounded-xl text-xs sm:text-sm cursor-pointer">
-                Watch Interactive Demo
-              </Button>
-            </a>
+            <button
+              type="button"
+              onClick={scrollToHowItWorks}
+              className="inline-flex items-center gap-2 px-5 py-4 rounded-xl border border-border/60 bg-card/50 hover:bg-card text-foreground font-medium text-sm transition-all"
+            >
+              Watch Interactive Demo
+            </button>
           </div>
         </div>
       </section>

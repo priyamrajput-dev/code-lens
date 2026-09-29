@@ -4,14 +4,17 @@ import { cn } from "cn"
 function Card({
   className,
   size = "default",
+  interactive = false,
   ...props
-}: React.ComponentProps<"div"> & { size?: "default" | "sm" }) {
+}: React.ComponentProps<"div"> & { size?: "default" | "sm"; interactive?: boolean }) {
   return (
     <div
       data-slot="card"
       data-size={size}
+      data-interactive={interactive || undefined}
       className={cn(
         "group/card flex flex-col gap-(--card-spacing) overflow-hidden rounded-xl bg-card border border-border/80 text-xs text-card-foreground shadow-xs transition-all duration-200 [--card-spacing:--spacing(5)] has-[>img:first-child]:pt-0 data-[size=sm]:[--card-spacing:--spacing(3.5)] data-[size=sm]:rounded-lg *:[img:first-child]:rounded-t-xl *:[img:last-child]:rounded-b-xl dark:border-border/80 dark:shadow-md",
+        interactive && "hover:border-foreground/20 hover:shadow-sm hover:-translate-y-0.5",
         className
       )}
       {...props}

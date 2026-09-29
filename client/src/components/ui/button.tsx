@@ -8,17 +8,17 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-foreground text-background hover:bg-foreground/90 shadow-sm border-t border-white/20 dark:border-white/15 active:shadow-none",
+          "bg-foreground text-background hover:bg-foreground/90 hover:shadow-md shadow-sm border-t border-white/20 dark:border-white/15 dark:hover:shadow-lg active:shadow-none",
         brand:
-          "bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:from-amber-600 hover:to-orange-600 shadow-md shadow-amber-500/20 border-t border-white/25 active:shadow-none",
+          "bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:from-amber-600 hover:to-orange-600 shadow-md shadow-amber-500/20 border-t border-white/25 active:shadow-none hover:brightness-105 active:brightness-95",
         outline:
-          "border-border bg-card/60 hover:bg-card hover:border-foreground/20 hover:text-foreground text-foreground/90 backdrop-blur-xs shadow-2xs",
+          "border-border bg-card/60 hover:bg-card hover:border-foreground/30 hover:text-foreground text-foreground/90 backdrop-blur-xs shadow-2xs active:scale-[0.98]",
         secondary:
-          "bg-secondary text-secondary-foreground hover:bg-secondary/80 border border-border/50",
+          "bg-secondary text-secondary-foreground hover:bg-secondary/80 border border-border/50 active:scale-[0.98]",
         ghost:
-          "hover:bg-muted/70 hover:text-foreground text-muted-foreground",
+          "hover:bg-muted/70 hover:text-foreground text-muted-foreground active:scale-[0.98]",
         destructive:
-          "bg-destructive/10 text-destructive border border-destructive/20 hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30",
+          "bg-destructive/10 text-destructive border border-destructive/20 hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30 active:scale-[0.98]",
         link: "text-primary underline-offset-4 hover:underline",
       },
       size: {
@@ -44,8 +44,9 @@ function Button({
   className,
   variant = "default",
   size = "default",
+  loading = false,
   ...props
-}: ButtonPrimitive.Props & VariantProps<typeof buttonVariants>) {
+}: ButtonPrimitive.Props & VariantProps<typeof buttonVariants> & { loading?: boolean }) {
   return (
     <ButtonPrimitive
       data-slot="button"

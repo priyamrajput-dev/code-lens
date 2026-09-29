@@ -24,6 +24,7 @@ export function GithubSignInForm({ callbackUrl = "/dashboard" }: GithubSignInFor
       await signIn.social({
         provider: "github",
         callbackURL: `${window.location.origin}${callbackUrl}`,
+        errorCallbackURL: `${window.location.origin}/sign-in`,
       });
     } catch (error) {
       console.error("Sign in failed", error);

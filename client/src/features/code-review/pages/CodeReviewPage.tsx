@@ -342,40 +342,40 @@ export function CodeReviewPage() {
         </div>
 
         {/* Editor Area */}
-        <div className="rounded-xl border border-border bg-[#080808] text-[#F5F5F5] shadow-xl overflow-hidden font-mono">
+        <div className="rounded-xl border border-border/80 bg-code-bg text-slate-100 shadow-xl overflow-hidden font-mono">
           {/* Editor Header Bar */}
-          <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-2.5 bg-[#101010] border-b border-[#252525]">
+          <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-2.5 bg-[#11131F] border-b border-[#1E2235]">
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-1.5">
-                <span className="size-2.5 rounded-full bg-[#E06B6B]/80" />
-                <span className="size-2.5 rounded-full bg-[#D6A23A]/80" />
-                <span className="size-2.5 rounded-full bg-[#55A96B]/80" />
+                <span className="size-2.5 rounded-full bg-[#F43F5E]/90" />
+                <span className="size-2.5 rounded-full bg-[#F59E0B]/90" />
+                <span className="size-2.5 rounded-full bg-[#10B981]/90" />
               </div>
-              <div className="flex items-center gap-2 pl-2 border-l border-[#252525]">
-                <FileCode className="size-3.5 text-[#A7A7A7]" />
+              <div className="flex items-center gap-2 pl-2 border-l border-[#1E2235]">
+                <FileCode className="size-3.5 text-slate-400" />
                 <input
                   type="text"
                   value={filename}
                   onChange={(e) => setFilename(e.target.value)}
-                  className="bg-transparent text-xs text-[#F5F5F5] border-none outline-none font-mono w-36 hover:bg-[#181818] px-1 py-0.5 rounded"
+                  className="bg-transparent text-xs text-slate-100 border-none outline-none font-mono w-36 hover:bg-[#181A27] px-1 py-0.5 rounded"
                   placeholder="filename.ts"
                 />
               </div>
             </div>
 
             <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-[#2A2A2A] bg-[#161616] text-[11px] font-mono text-[#D4D4D4] shadow-2xs">
-                <Sparkles className="size-3 text-[#D9781C]" />
-                <span className="text-[#8E8E8E]">AI Detect:</span>
-                <span className="text-[#F0F0F0] font-medium">{detectedLanguage}</span>
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-[#1E2235] bg-[#181A27] text-[11px] font-mono text-slate-300 shadow-2xs">
+                <Sparkles className="size-3 text-amber-500" />
+                <span className="text-slate-500">AI Detect:</span>
+                <span className="text-slate-100 font-medium">{detectedLanguage}</span>
               </span>
             </div>
           </div>
 
           {/* Editor Body */}
-          <div className="relative flex min-h-[320px] max-h-[500px] overflow-auto bg-[#080808]">
+          <div className="relative flex min-h-[320px] max-h-[500px] overflow-auto bg-code-bg">
             {/* Line Numbers */}
-            <div className="select-none py-4 px-3 text-right text-[12px] font-mono text-[#4D4D4D] bg-[#0A0A0A] border-r border-[#1E1E1E] leading-6 min-w-[3rem]">
+            <div className="select-none py-4 px-3 text-right text-[12px] font-mono text-slate-600 bg-[#0D0E15] border-r border-[#1E2235] leading-6 min-w-[3rem]">
               {Array.from({ length: Math.max(lineCount, 12) }).map((_, i) => (
                 <div key={i}>{i + 1}</div>
               ))}
@@ -386,26 +386,27 @@ export function CodeReviewPage() {
               value={code}
               onChange={(e) => setCode(e.target.value)}
               placeholder="Paste or write your code here..."
-              className="flex-1 p-4 bg-transparent text-[13px] text-[#E0E0E0] font-mono leading-6 border-none outline-none resize-none min-h-[320px] whitespace-pre"
+              className="flex-1 p-4 bg-transparent text-[13px] text-slate-200 font-mono leading-6 border-none outline-none resize-none min-h-[320px] whitespace-pre placeholder:text-slate-600"
               spellCheck={false}
+              aria-label="Code editor"
             />
           </div>
 
           {/* Editor Footer / Action Bar */}
-          <div className="flex flex-wrap items-center justify-between gap-4 px-4 py-3 bg-[#101010] border-t border-[#252525]">
-            <div className="flex items-center gap-3 text-[11px] text-[#A7A7A7]">
+          <div className="flex flex-wrap items-center justify-between gap-4 px-4 py-3 bg-[#11131F] border-t border-[#1E2235]">
+            <div className="flex items-center gap-3 text-[11px] text-slate-400">
               <span>{lineCount} lines</span>
               <span>•</span>
               <span>{code.length} characters</span>
               <span>•</span>
-              <span className="text-[#D9781C]">Gemini 2.0 Ready</span>
+              <span className="text-amber-500">Gemini 2.0 Ready</span>
               {code.trim() && (
                 <>
                   <span>•</span>
                   <button
                     type="button"
                     onClick={() => setCode("")}
-                    className="text-[#707070] hover:text-[#E06B6B] transition-colors cursor-pointer"
+                    className="text-slate-500 hover:text-rose-400 transition-colors cursor-pointer"
                     title="Clear editor"
                   >
                     Clear
@@ -417,7 +418,8 @@ export function CodeReviewPage() {
             <Button
               onClick={handleRunReview}
               disabled={loading || !code.trim()}
-              className="bg-[#C86B16] hover:bg-[#A9560C] dark:bg-[#D9781C] dark:hover:bg-[#F08A27] text-white font-medium px-5 py-2 rounded-lg shadow-sm gap-2 text-xs cursor-pointer disabled:opacity-50"
+              variant="brand"
+              className="font-medium px-5 py-2 rounded-lg shadow-sm gap-2 text-xs cursor-pointer"
             >
               {loading ? (
                 <>
@@ -553,7 +555,7 @@ export function CodeReviewPage() {
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-base font-semibold text-foreground tracking-tight flex items-center gap-2">
-                  <Terminal className="size-4 text-[#C86B16] dark:text-[#D9781C]" />
+                  <Terminal className="size-4 text-amber-500" />
                   Review Findings ({filteredFindings.length})
                 </h3>
                 {activeSeverityFilter !== "all" && (
@@ -654,7 +656,7 @@ export function CodeReviewPage() {
                               <span className="font-semibold text-foreground uppercase tracking-wider text-[11px]">
                                 Recommended Fix:
                               </span>
-                              <div className="rounded-lg border border-[#252525] bg-[#0A0A0A] text-[#D4D4D4] p-3 font-mono text-[11px] overflow-x-auto relative">
+                              <div className="rounded-lg border border-[#1E2235] bg-code-bg text-slate-300 p-3 font-mono text-[11px] overflow-x-auto relative">
                                 <pre>
                                   <code>{finding.codeSnippet}</code>
                                 </pre>

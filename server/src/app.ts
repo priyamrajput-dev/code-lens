@@ -19,24 +19,29 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export function createApplication(): Express {
   const app = express();
 
+  // Trust reverse proxy (Render, Vercel, etc.) for secure cookies & proto detection
+  app.set("trust proxy", 1);
+
+  const allowedOrigins = [
+    env.CLIENT_URL.replace(/\/$/, ""),
+    "https://code-lens-peach.vercel.app",
+    "http://localhost:3000",
+    "http://localhost:3001",
+    "http://localhost:5173",
+    "http://localhost:8080",
+    /^http:\/\/localhost(:\d+)?$/,
+    /^http:\/\/127\.0\.0\.1(:\d+)?$/,
+  ];
+
   app.use(
     cors({
-      origin: [
-        env.CLIENT_URL,
-        "http://localhost:3000",
-        "http://localhost:3001",
-        "http://localhost:5173",
-        "http://localhost:8080",
-        /^http:\/\/localhost(:\d+)?$/,
-        /^http:\/\/127\.0\.0\.1(:\d+)?$/,
-        "https://slaw-walnut-showy.ngrok-free.dev",
-      ],
+      origin: allowedOrigins,
       credentials: true,
     }),
   );
 
   // Better Auth handler for Express 5 (path-to-regexp v8 wildcard format)
-  app.all("/api/auth/*path", toNodeHandler(auth));
+  app.all(["/api/auth", "/api/auth/*path"], toNodeHandler(auth));
 
   app.use(express.json());
 
@@ -56,6 +61,15 @@ export function createApplication(): Express {
         return next();
       }
       res.sendFile(path.join(clientDistPath, "index.html"));
+    });
+  } else {
+    // Backend root fallback when client dist is not built locally
+    app.get("/", (req, res) => {
+      if (req.query.error) {
+        const clientRedirectUrl = `${env.CLIENT_URL.replace(/\/$/, "")}/sign-in?${new URLSearchParams(req.query as Record<string, string>).toString()}`;
+        return res.redirect(clientRedirectUrl);
+      }
+      res.json({ status: "ok", name: "code-lens-api" });
     });
   }
 

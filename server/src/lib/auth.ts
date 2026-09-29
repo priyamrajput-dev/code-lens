@@ -4,19 +4,27 @@ import { db } from "../db/index.js";
 import * as schema from "../db/schema.js";
 import { env } from "../common/config/env.js";
 
-const clientURL = env.CLIENT_URL;
+const clientURL = env.CLIENT_URL.replace(/\/$/, "");
+const isSecure = env.BETTER_AUTH_URL.startsWith("https://") || env.NODE_ENV === "production";
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
     provider: "pg",
     schema,
   }),
+  account: {
+    storeStateStrategy: "database",
+    skipStateCookieCheck: true,
+  },
   advanced: {
     defaultCookieAttributes: {
-      sameSite: "none",
-      secure: true,
+      sameSite: isSecure ? "none" : "lax",
+      secure: isSecure,
     },
-    useSecureCookies: true,
+    useSecureCookies: isSecure,
+  },
+  onAPIError: {
+    errorURL: `${clientURL}/sign-in`,
   },
   socialProviders: {
     github: {
@@ -33,12 +41,12 @@ export const auth = betterAuth({
   secret: env.BETTER_AUTH_SECRET,
   trustedOrigins: [
     clientURL,
+    "https://code-lens-peach.vercel.app",
     "http://localhost:3000",
     "http://localhost:3001",
     "http://localhost:5173",
     "http://localhost:8080",
     "http://localhost:*",
     "http://127.0.0.1:*",
-    "https://slaw-walnut-showy.ngrok-free.dev",
   ],
 });
