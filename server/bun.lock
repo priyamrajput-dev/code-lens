@@ -18,6 +18,7 @@
         "octokit": "^5.0.5",
         "pg": "^8.23.0",
         "razorpay": "^2.9.8",
+        "set-cookie-parser": "^3.1.2",
         "zod": "^4.5.4",
       },
       "devDependencies": {
@@ -26,6 +27,7 @@
         "@types/express": "^5.0.6",
         "@types/node": "^26.5.0",
         "@types/pg": "^8.23.1",
+        "@types/set-cookie-parser": "^2.4.10",
         "drizzle-kit": "^0.31.10",
         "tsx": "^4.23.13",
       },
@@ -412,6 +414,8 @@
     "@types/send": ["@types/send@1.2.1", "", { "dependencies": { "@types/node": "*" } }, "sha512-arsCikDvlU99zl1g69TcAB3mzZPpxgw0UQnaHeC1Nwb015xp8bknZv5rIfri9xTOcMuaVgvabfIRA7PSZVuZIQ=="],
 
     "@types/serve-static": ["@types/serve-static@2.2.0", "", { "dependencies": { "@types/http-errors": "*", "@types/node": "*" } }, "sha512-8mam4H1NHLtu7nmtalF7eyBH14QyOASmcxHhSfEoRyr0nP/YdoesEtU+uSRvMe96TW/HPTtkoKqQLl53N7UXMQ=="],
+
+    "@types/set-cookie-parser": ["@types/set-cookie-parser@2.4.10", "", { "dependencies": { "@types/node": "*" } }, "sha512-GGmQVGpQWUe5qglJozEjZV/5dyxbOOZ0LHe/lqyWssB88Y4svNfst0uqBVscdDeIKl5Jy5+aPSvy7mI9tYRguw=="],
 
     "@vercel/oidc": ["@vercel/oidc@3.2.0", "", {}, "sha512-UycprH3T6n3jH0k44NHMa7pnFHGu/N05MjojYr+Mc6I7obkoLIJujSWwin1pCvdy/eOxrI/l3uDLQsmcrOb4ug=="],
 
