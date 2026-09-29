@@ -1,4 +1,7 @@
 const getBaseUrl = () => {
+  if (typeof window !== "undefined" && window.location.hostname.endsWith("vercel.app")) {
+    return "";
+  }
   const configured = import.meta.env.VITE_SERVER_URL?.replace(/\/$/, "");
   if (configured) return configured;
   if (typeof window !== "undefined") return "";
