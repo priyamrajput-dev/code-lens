@@ -1,5 +1,6 @@
 import GithubRepository from "./github.repository.js";
 import { getGithubApp, getGithubInstallUrl } from "../../lib/github-app.js";
+import { cache, cacheKey } from "../../lib/cache.js";
 
 export type GithubRepo = {
   id: string;
@@ -25,24 +26,31 @@ class GithubService {
   constructor(private readonly githubRepository: GithubRepository) {}
 
   async getInstallationStatus(userId: string) {
-    const installation = await this.githubRepository.findInstallationByUserId(userId);
+    const key = cacheKey("github:status", userId);
+    return await cache.getOrSet(
+      key,
+      async () => {
+        const installation = await this.githubRepository.findInstallationByUserId(userId);
 
-    if (!installation) {
-      return {
-        connected: false,
-        accountLogin: null,
-        installedAt: null,
-        installUrl: getGithubInstallUrl(userId),
-      };
-    }
+        if (!installation) {
+          return {
+            connected: false,
+            accountLogin: null,
+            installedAt: null,
+            installUrl: getGithubInstallUrl(userId),
+          };
+        }
 
-    return {
-      connected: true,
-      accountLogin: installation.accountLogin,
-      installedAt: installation.createdAt.toISOString(),
-      installationId: installation.installationId,
-      installUrl: getGithubInstallUrl(userId),
-    };
+        return {
+          connected: true,
+          accountLogin: installation.accountLogin,
+          installedAt: installation.createdAt.toISOString(),
+          installationId: installation.installationId,
+          installUrl: getGithubInstallUrl(userId),
+        };
+      },
+      60, // 60 seconds TTL
+    );
   }
 
   async saveInstallation(userId: string, installationId: number) {
@@ -55,12 +63,21 @@ class GithubService {
     const accountLogin =
       account && "login" in account ? account.login : account && "slug" in account ? account.slug : null;
 
-    return await this.githubRepository.upsertInstallation(
+    const result = await this.githubRepository.upsertInstallation(
       userId,
       installationId,
       accountLogin ?? null,
       data.target_type ?? null,
     );
+
+    // Invalidate user's cached GitHub status and repo listings
+    await Promise.all([
+      cache.del(cacheKey("github:status", userId)),
+      cache.delPattern(cacheKey("github:repos", userId, "*")),
+      cache.del(cacheKey("settings", userId)),
+    ]);
+
+    return result;
   }
 
   async deleteInstallation(userId: string) {
@@ -75,55 +92,76 @@ class GithubService {
         console.warn("Could not delete installation on GitHub:", err);
       }
     }
-    return await this.githubRepository.deleteInstallationByUserId(userId);
+
+    const result = await this.githubRepository.deleteInstallationByUserId(userId);
+
+    // Invalidate user's cached GitHub status and repo listings
+    await Promise.all([
+      cache.del(cacheKey("github:status", userId)),
+      cache.delPattern(cacheKey("github:repos", userId, "*")),
+      cache.del(cacheKey("settings", userId)),
+    ]);
+
+    return result;
   }
 
   async getRepos(userId: string, page = 1): Promise<InstallationReposPage> {
-    const status = await this.getInstallationStatus(userId);
-    if (!status.connected || !status.installationId) {
-      return {
-        repos: [],
-        totalCount: 0,
-        page: 1,
-        hasMore: false,
-      };
-    }
+    const key = cacheKey("github:repos", userId, page);
 
-    const app = getGithubApp();
-    const octokit = await app.getInstallationOctokit(status.installationId);
-    const { data } = await octokit.request("GET /installation/repositories", {
-      per_page: REPOS_PER_PAGE,
-      page,
-    });
+    return await cache.getOrSet(
+      key,
+      async () => {
+        const status = await this.getInstallationStatus(userId);
+        if (!status.connected || !status.installationId) {
+          return {
+            repos: [],
+            totalCount: 0,
+            page: 1,
+            hasMore: false,
+          };
+        }
 
-    const repos: GithubRepo[] = data.repositories.map((repo) => {
-      const latestActivity = Math.max(
-        new Date(repo.pushed_at || 0).getTime(),
-        new Date(repo.updated_at || 0).getTime(),
-        new Date(repo.created_at || 0).getTime(),
-      );
+        const app = getGithubApp();
+        const octokit = await app.getInstallationOctokit(status.installationId);
+        const { data } = await octokit.request("GET /installation/repositories", {
+          per_page: REPOS_PER_PAGE,
+          page,
+        });
 
-      return {
-        id: String(repo.id),
-        name: repo.name,
-        fullName: repo.full_name,
-        visibility: repo.private ? "private" : "public",
-        defaultBranch: repo.default_branch ?? "main",
-        updatedAt: latestActivity > 0 ? new Date(latestActivity).toISOString() : (repo.updated_at ?? new Date().toISOString()),
-        language: repo.language ?? null,
-        stars: repo.stargazers_count ?? 0,
-      };
-    });
+        const repos: GithubRepo[] = data.repositories.map((repo) => {
+          const latestActivity = Math.max(
+            new Date(repo.pushed_at || 0).getTime(),
+            new Date(repo.updated_at || 0).getTime(),
+            new Date(repo.created_at || 0).getTime(),
+          );
 
-    // Show most recently updated / currently worked on repositories first
-    repos.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+          return {
+            id: String(repo.id),
+            name: repo.name,
+            fullName: repo.full_name,
+            visibility: repo.private ? "private" : "public",
+            defaultBranch: repo.default_branch ?? "main",
+            updatedAt:
+              latestActivity > 0
+                ? new Date(latestActivity).toISOString()
+                : (repo.updated_at ?? new Date().toISOString()),
+            language: repo.language ?? null,
+            stars: repo.stargazers_count ?? 0,
+          };
+        });
 
-    return {
-      repos,
-      totalCount: data.total_count,
-      page,
-      hasMore: page * REPOS_PER_PAGE < data.total_count,
-    };
+        // Show most recently updated / currently worked on repositories first
+        repos.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+
+        return {
+          repos,
+          totalCount: data.total_count,
+          page,
+          hasMore: page * REPOS_PER_PAGE < data.total_count,
+        };
+      },
+      120, // 2 minutes TTL
+    );
   }
 }
 

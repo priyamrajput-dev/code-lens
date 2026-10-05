@@ -11,7 +11,8 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
-    "test:rate-limit": "bun scripts/test-rate-limit.ts"
+    "test:rate-limit": "bun scripts/test-rate-limit.ts",
+    "test:cache": "bun scripts/test-cache.ts"
   },
   "devDependencies": {
     "@types/bun": "latest",
