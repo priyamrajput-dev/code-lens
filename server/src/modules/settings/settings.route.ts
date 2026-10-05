@@ -7,6 +7,8 @@ import BillingService from "../billing/billing.service.js";
 import BillingRepository from "../billing/billing.repository.js";
 import { requireAuth } from "../../common/middleware/require-auth.middleware.js";
 import { asyncHandler } from "../../common/utils/aync-handler.js";
+import { createRateLimiter } from "../../common/middleware/rate-limit.middleware.js";
+import { rateLimitPolicies } from "../../common/config/rate-limits.js";
 
 export const settingsRoutes = Router();
 
@@ -17,8 +19,12 @@ const billingService = new BillingService(billingRepository);
 const settingsService = new SettingsService(githubService, billingService, billingRepository);
 const settingsController = new SettingsController(settingsService);
 
+const readLimiter = createRateLimiter({ policy: rateLimitPolicies.readOnly });
+
 settingsRoutes.get(
   "/",
   requireAuth,
+  readLimiter,
   asyncHandler(settingsController.getSettings.bind(settingsController)),
 );
+

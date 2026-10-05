@@ -4,6 +4,8 @@ import GithubService from "./github.service.js";
 import GithubRepository from "./github.repository.js";
 import { requireAuth } from "../../common/middleware/require-auth.middleware.js";
 import { asyncHandler } from "../../common/utils/aync-handler.js";
+import { createRateLimiter } from "../../common/middleware/rate-limit.middleware.js";
+import { rateLimitPolicies } from "../../common/config/rate-limits.js";
 
 import ReviewsController from "../reviews/reviews.controller.js";
 import ReviewsService from "../reviews/reviews.service.js";
@@ -21,6 +23,9 @@ const billingRepository = new BillingRepository();
 const reviewsService = new ReviewsService(reviewsRepository, githubRepository, billingRepository);
 const reviewsController = new ReviewsController(reviewsService);
 
+const readLimiter = createRateLimiter({ policy: rateLimitPolicies.readOnly });
+
+// Webhooks are signature-verified and exempt from rate limiting
 githubRoutes.post(
   "/webhook",
   asyncHandler(reviewsController.handleWebhook.bind(reviewsController)),
@@ -29,6 +34,7 @@ githubRoutes.post(
 githubRoutes.get(
   "/status",
   requireAuth,
+  readLimiter,
   asyncHandler(githubController.getStatus.bind(githubController)),
 );
 githubRoutes.post(
@@ -44,9 +50,11 @@ githubRoutes.delete(
 githubRoutes.get(
   "/repos",
   requireAuth,
+  readLimiter,
   asyncHandler(githubController.listRepos.bind(githubController)),
 );
 githubRoutes.get(
   "/callback",
   asyncHandler(githubController.handleCallback.bind(githubController)),
 );
+

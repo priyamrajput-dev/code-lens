@@ -29,6 +29,21 @@ const envSchema = z.object({
   RAZORPAY_KEY_SECRET: z.string().optional(),
   RAZORPAY_WEBHOOK_SECRET: z.string().optional(),
   RAZORPAY_PRO_PLAN_ID: z.string().optional(),
+
+  // Redis & Rate Limiting
+  REDIS_URL: z.string().default("redis://localhost:6379"),
+  REDIS_KEY_PREFIX: z.string().optional(),
+  RATE_LIMIT_ENABLED: z
+    .preprocess((val) => (val === undefined ? true : val !== "false" && val !== false), z.boolean())
+    .default(true),
+}).superRefine((data, ctx) => {
+  if (data.NODE_ENV === "production" && !process.env.REDIS_URL) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "REDIS_URL is required in production",
+      path: ["REDIS_URL"],
+    });
+  }
 });
 
 const createEnv = (env: NodeJS.ProcessEnv) => {

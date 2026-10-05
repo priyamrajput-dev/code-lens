@@ -39,3 +39,10 @@ export class ValidationError extends AppError {
     super(message, 422, errors);
   }
 }
+
+export class TooManyRequestsError extends AppError {
+  constructor(message: string = "Too many requests, please try again later", errors?: unknown) {
+    super(message, 429, errors);
+  }
+}
+

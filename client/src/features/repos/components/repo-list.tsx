@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
-import { useMemo, useState } from "react";
+import { useMemo, useState, memo } from "react";
 import { Link } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -21,6 +21,70 @@ import { SyncRepoButton } from "./sync-repo-button";
 import type { DashboardRepo, RepoSyncStatus, GithubInstallationStatus } from "@/features/dashboard/lib/types";
 import { apiFetch } from "@/lib/api-client";
 import { GitHubIcon } from "@/features/auth/components/github-sign-in-form";
+
+type RepoWithSync = DashboardRepo & { syncStatus: RepoSyncStatus | null };
+
+const RepoRowItem = memo(function RepoRowItem({ repo }: { repo: RepoWithSync }) {
+  return (
+    <TableRow key={repo.id} className="hover:bg-muted/40 transition-colors">
+      <TableCell className="font-mono text-sm text-foreground">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+          <span className="font-semibold text-sm text-foreground">{repo.name}</span>
+          <span className="text-xs text-muted-foreground/70 hidden sm:inline">•</span>
+          <span className="text-xs text-muted-foreground font-mono">{repo.fullName}</span>
+        </div>
+      </TableCell>
+      <TableCell>
+        <Badge variant="outline" className="gap-1 font-normal text-xs rounded-lg">
+          {repo.visibility === "private" ? (
+            <>
+              <Lock className="size-3 text-amber-500" />
+              <span className="hidden sm:inline">Private</span>
+              <span className="sm:hidden">🔒</span>
+            </>
+          ) : (
+            <>
+              <Unlock className="size-3 text-emerald-500" />
+              <span className="hidden sm:inline">Public</span>
+              <span className="sm:hidden">🔓</span>
+            </>
+          )}
+        </Badge>
+      </TableCell>
+      <TableCell className="text-xs font-mono text-muted-foreground hidden sm:table-cell">
+        <span className="bg-muted/60 px-2 py-0.5 rounded border border-border/60 font-mono">
+          {repo.defaultBranch}
+        </span>
+      </TableCell>
+      <TableCell className="text-xs font-medium">
+        {repo.language ? (
+          <span className="inline-flex items-center gap-1.5">
+            <span className="size-2 rounded-full bg-amber-500/80" />
+            {repo.language}
+          </span>
+        ) : (
+          <span className="text-muted-foreground/50">—</span>
+        )}
+      </TableCell>
+      <TableCell className="text-right">
+        <span className="inline-flex items-center justify-end gap-1 text-xs text-muted-foreground font-mono">
+          <Star className="size-3 text-amber-500 fill-amber-500/20" />
+          {repo.stars}
+        </span>
+      </TableCell>
+      <TableCell className="text-right text-xs text-muted-foreground font-mono hidden sm:table-cell">
+        {formatDistanceToNow(new Date(repo.updatedAt), { addSuffix: true })}
+      </TableCell>
+      <TableCell>
+        <SyncRepoButton
+          repoFullName={repo.fullName}
+          branch={repo.defaultBranch}
+          syncStatus={repo.syncStatus}
+        />
+      </TableCell>
+    </TableRow>
+  );
+});
 
 type Filter = "all" | "public" | "private";
 
@@ -49,9 +113,10 @@ export function RepoList() {
 
   const isLoading = isStatusLoading || (isConnected && isReposLoading);
   const rawRepos = isConnected ? reposData?.repos || [] : [];
+  const repoFullNamesKey = useMemo(() => rawRepos.map((r) => r.fullName).join(","), [rawRepos]);
 
   const { data: syncStatuses } = useQuery({
-    queryKey: ["repo-sync-statuses", rawRepos.map((r) => r.fullName)],
+    queryKey: ["repo-sync-statuses", repoFullNamesKey],
     queryFn: async () => {
       if (rawRepos.length === 0) return {};
       const params = new URLSearchParams();
@@ -216,63 +281,7 @@ export function RepoList() {
                 </TableRow>
               ) : (
                 visibleRepos.map((repo) => (
-                  <TableRow key={repo.id} className="hover:bg-muted/40 transition-colors">
-                    <TableCell className="font-mono text-sm text-foreground">
-                      <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
-                        <span className="font-semibold text-sm text-foreground">{repo.name}</span>
-                        <span className="text-xs text-muted-foreground/70 hidden sm:inline">•</span>
-                        <span className="text-xs text-muted-foreground font-mono">{repo.fullName}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className="gap-1 font-normal text-xs rounded-lg">
-                        {repo.visibility === "private" ? (
-                          <>
-                            <Lock className="size-3 text-amber-500" />
-                            <span className="hidden sm:inline">Private</span>
-                            <span className="sm:hidden">🔒</span>
-                          </>
-                        ) : (
-                          <>
-                            <Unlock className="size-3 text-emerald-500" />
-                            <span className="hidden sm:inline">Public</span>
-                            <span className="sm:hidden">🔓</span>
-                          </>
-                        )}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-xs font-mono text-muted-foreground hidden sm:table-cell">
-                      <span className="bg-muted/60 px-2 py-0.5 rounded border border-border/60 font-mono">
-                        {repo.defaultBranch}
-                      </span>
-                    </TableCell>
-                    <TableCell className="text-xs font-medium">
-                      {repo.language ? (
-                        <span className="inline-flex items-center gap-1.5">
-                          <span className="size-2 rounded-full bg-amber-500/80" />
-                          {repo.language}
-                        </span>
-                      ) : (
-                        <span className="text-muted-foreground/50">—</span>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <span className="inline-flex items-center justify-end gap-1 text-xs text-muted-foreground font-mono">
-                        <Star className="size-3 text-amber-500 fill-amber-500/20" />
-                        {repo.stars}
-                      </span>
-                    </TableCell>
-                    <TableCell className="text-right text-xs text-muted-foreground font-mono hidden sm:table-cell">
-                      {formatDistanceToNow(new Date(repo.updatedAt), { addSuffix: true })}
-                    </TableCell>
-                    <TableCell>
-                      <SyncRepoButton
-                        repoFullName={repo.fullName}
-                        branch={repo.defaultBranch}
-                        syncStatus={repo.syncStatus}
-                      />
-                    </TableCell>
-                  </TableRow>
+                  <RepoRowItem key={repo.id} repo={repo} />
                 ))
               )}
             </TableBody>

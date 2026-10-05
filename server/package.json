@@ -10,7 +10,8 @@
     "tunnel": "ngrok http 8080 --url https://slaw-walnut-showy.ngrok-free.dev",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "test:rate-limit": "bun scripts/test-rate-limit.ts"
   },
   "devDependencies": {
     "@types/bun": "latest",
@@ -36,6 +37,7 @@
     "drizzle-orm": "^0.45.2",
     "express": "^5.2.1",
     "inngest": "^4.20.0",
+    "ioredis": "^6.0.0",
     "octokit": "^5.0.5",
     "pg": "^8.23.0",
     "razorpay": "^2.9.8",

@@ -14,6 +14,9 @@ import path from "path";
 import { fileURLToPath } from "url";
 import fs from "fs";
 import setCookieParser from "set-cookie-parser";
+import { isRedisHealthy } from "./lib/redis.js";
+import { createRateLimiter } from "./common/middleware/rate-limit.middleware.js";
+import { rateLimitPolicies } from "./common/config/rate-limits.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -121,10 +124,31 @@ export function createApplication(): Express {
     next();
   });
 
-  // Better Auth handler for Express 5 (path-to-regexp v8 wildcard format)
-  app.all(["/api/auth", "/api/auth/*path"], toNodeHandler(auth));
+  // Rate limiters
+  const authLimiter = createRateLimiter({
+    policy: rateLimitPolicies.auth,
+    skip: (req) => req.originalUrl.includes("/callback"),
+  });
+
+  const globalApiLimiter = createRateLimiter({
+    policy: rateLimitPolicies.global,
+    skip: (req) => {
+      const url = req.originalUrl;
+      return (
+        url.startsWith("/api/health") ||
+        url.startsWith("/api/auth") ||
+        url.endsWith("/webhook")
+      );
+    },
+  });
+
+  // Better Auth handler for Express 5 (path-to-regexp v8 wildcard format) with strict auth rate limiter
+  app.all(["/api/auth", "/api/auth/*path"], authLimiter, toNodeHandler(auth));
 
   app.use(express.json());
+
+  // Global rate limiter applied to all other /api routes
+  app.use("/api", globalApiLimiter);
 
   // Feature Module Routes
   app.use("/api/github", githubRoutes);
@@ -132,6 +156,16 @@ export function createApplication(): Express {
   app.use("/api/reviews", reviewRoutes);
   app.use("/api/billing", billingRoutes);
   app.use("/api/settings", settingsRoutes);
+
+  // Health check endpoint (for Render / Docker / uptime monitoring)
+  app.get("/api/health", async (_req, res) => {
+    const redisHealthy = await isRedisHealthy();
+    res.json({
+      status: "ok",
+      name: "code-lens-api",
+      redis: redisHealthy ? "healthy" : "disconnected",
+    });
+  });
 
   // Serve frontend client dist if available
   const clientDistPath = path.resolve(__dirname, "../../client/dist");

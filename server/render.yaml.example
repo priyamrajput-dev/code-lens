@@ -1,0 +1,42 @@
+# Render Deployment Configuration for CodeLens API + Redis
+# Note: Render offers managed Redis instances (Free / Starter plans)
+# If using Upstash or external Redis Cloud, set REDIS_URL in Render Dashboard Environment settings instead.
+
+services:
+  # Main Express API Web Service
+  - type: web
+    name: code-lens-api
+    env: node
+    plan: starter
+    buildCommand: bun install
+    startCommand: bun run src/server.ts
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 8080
+      - key: DATABASE_URL
+        sync: false
+      - key: BETTER_AUTH_SECRET
+        generateValue: true
+      - key: BETTER_AUTH_URL
+        sync: false
+      - key: CLIENT_URL
+        value: https://code-lens-peach.vercel.app
+      # Wired to Render Redis service below (or set your Upstash rediss:// URL manually):
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: code-lens-redis
+          property: connectionString
+      - key: REDIS_KEY_PREFIX
+        value: codelens
+      - key: RATE_LIMIT_ENABLED
+        value: "true"
+
+  # Optional Native Render Redis Instance
+  - type: redis
+    name: code-lens-redis
+    plan: free # or starter
+    ipAllowList: [] # internal network only
