@@ -285,14 +285,14 @@ export function LandingPage() {
                   <ArrowRight className="size-4 icon-nudge" />
                 </Button>
               </Link>
-              <button
-                type="button"
+              <a
+                href="#how-it-works"
                 onClick={scrollToHowItWorks}
                 className="inline-flex items-center gap-2 px-5 py-3.5 sm:py-4 min-h-[44px] rounded-xl border border-border/60 bg-card/50 hover:bg-card text-foreground font-medium text-sm transition-all duration-200 cursor-pointer"
               >
                 <Play className="size-3.5 fill-amber-500 text-amber-500" />
                 Watch Interactive Demo
-              </button>
+              </a>
             </div>
 
             {/* Quick Benefits Checklist */}

@@ -1,8 +1,11 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { BrandLogo } from "@/components/ui/brand-logo";
 import { GitHubIcon } from "@/features/auth/components/github-sign-in-form";
+import { scrollToTarget } from "@/lib/motion";
 
 export function SiteFooter() {
+  const location = useLocation();
+
   return (
     <footer className="border-t border-border/80 bg-card/40 backdrop-blur-sm transition-colors mt-auto">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -34,7 +37,17 @@ export function SiteFooter() {
                 </Link>
               </li>
               <li>
-                <a href="/#how-it-works" className="hover:text-foreground transition-colors">
+                <a
+                  href="/#how-it-works"
+                  onClick={(e) => {
+                    if (location.pathname === "/" || location.pathname === "") {
+                      e.preventDefault();
+                      scrollToTarget("how-it-works");
+                      window.history.pushState(null, "", "#how-it-works");
+                    }
+                  }}
+                  className="hover:text-foreground transition-colors cursor-pointer"
+                >
                   Interactive Demo
                 </a>
               </li>

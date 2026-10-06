@@ -116,7 +116,7 @@ export function SiteNavbar() {
     const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
         if (href.includes('#')) {
             const hash = href.split('#')[1];
-            if (location.pathname === '/') {
+            if (location.pathname === '/' || location.pathname === '') {
                 e.preventDefault();
                 scrollToTarget(hash);
                 window.history.pushState(null, '', `#${hash}`);
