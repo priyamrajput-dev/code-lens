@@ -1,0 +1,432 @@
+import React, { useState, useMemo, Suspense } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { formatDistanceToNow } from 'date-fns';
+import { apiFetch } from '@/lib/api-client';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
+import {
+    Search,
+    GitPullRequest,
+    ExternalLink,
+    History,
+    CheckCircle2,
+    FolderGit2,
+    Copy,
+    Check,
+    ChevronRight,
+} from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { lazyWithRetry } from '@/lib/route-utils';
+
+const ReviewMarkdownViewer = lazyWithRetry(() =>
+    import('@/components/markdown/ReviewMarkdownViewer').then((m) => ({
+        default: m.ReviewMarkdownViewer,
+    }))
+);
+
+const preloadMarkdownViewer = () => {
+    try {
+        import('@/components/markdown/ReviewMarkdownViewer');
+    } catch {
+        // Ignore prefetch errors
+    }
+};
+
+export type PullRequestReview = {
+    id: string;
+    installationId: number;
+    repoFullName: string;
+    prNumber: number;
+    title: string;
+    authorLogin: string | null;
+    headSha: string;
+    baseBranch: string;
+    status: 'pending' | 'processing' | 'reviewed' | 'rate_limited';
+    reviewComment: string | null;
+    reviewedAt: string | null;
+    createdAt: string;
+    updatedAt: string;
+};
+
+interface ReviewRowProps {
+    review: PullRequestReview;
+    onSelect: (review: PullRequestReview) => void;
+}
+
+const ReviewRow = React.memo(function ReviewRow({ review, onSelect }: ReviewRowProps) {
+    return (
+        <div
+            onClick={() => onSelect(review)}
+            onMouseEnter={preloadMarkdownViewer}
+            onFocus={preloadMarkdownViewer}
+            className="group relative flex flex-col sm:flex-row sm:items-center justify-between p-4 sm:px-5 sm:py-4 hover:bg-muted/40 transition-all cursor-pointer gap-3 sm:gap-4"
+        >
+            {/* Left Column: PR Icon & Details */}
+            <div className="flex items-start sm:items-center gap-3.5 min-w-0 flex-1">
+                <div className="size-9 rounded-xl bg-amber-500/10 border border-amber-500/25 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform mt-0.5 sm:mt-0">
+                    <GitPullRequest className="size-4 text-amber-500" />
+                </div>
+
+                <div className="flex flex-col min-w-0 flex-1">
+                    {/* Row 1: PR Title & PR Number */}
+                    <div className="flex items-center gap-2 min-w-0">
+                        <span className="font-semibold text-sm text-foreground truncate group-hover:text-amber-500 transition-colors">
+                            {review.title}
+                        </span>
+                        <Badge
+                            variant="outline"
+                            className="text-[10px] font-mono shrink-0 border-border/80 bg-secondary-bg px-1.5 py-0"
+                        >
+                            PR #{review.prNumber}
+                        </Badge>
+                    </div>
+
+                    {/* Row 2: Repository, Author, Branch */}
+                    <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground mt-1">
+                        <span className="font-mono text-[11px] font-medium text-foreground/90 bg-muted/80 px-2 py-0.5 rounded border border-border/60">
+                            {review.repoFullName}
+                        </span>
+                        <span className="text-muted-foreground/40">•</span>
+                        <span className="font-mono text-[11px]">
+                            @{review.authorLogin || 'unknown'}
+                        </span>
+                        <span className="text-muted-foreground/40 hidden sm:inline">•</span>
+                        <span className="text-[11px] font-mono text-muted-foreground hidden sm:inline">
+                            branch: <span className="text-foreground/80">{review.baseBranch}</span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            {/* Right Column: Status, Evaluated Time, and Action Button */}
+            <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-border/40">
+                {/* Status Badge */}
+                <Badge
+                    variant={
+                        review.status === 'reviewed'
+                            ? 'success'
+                            : review.status === 'processing'
+                              ? 'info'
+                              : 'warning'
+                    }
+                    className="capitalize"
+                >
+                    {review.status === 'reviewed' && <CheckCircle2 className="size-3" />}
+                    <span>{review.status}</span>
+                </Badge>
+
+                {/* Evaluated Time */}
+                <span className="text-xs text-muted-foreground font-mono shrink-0 whitespace-nowrap min-w-[80px] text-right">
+                    {review.reviewedAt
+                        ? formatDistanceToNow(new Date(review.reviewedAt), {
+                              addSuffix: true,
+                          })
+                        : formatDistanceToNow(new Date(review.createdAt), {
+                              addSuffix: true,
+                          })}
+                </span>
+
+                {/* View Comments Action Button */}
+                <Button
+                    size="xs"
+                    variant="outline"
+                    className="text-xs gap-1.5 border-border/80 shrink-0 bg-background group-hover:bg-foreground group-hover:text-background transition-all shadow-2xs cursor-pointer font-medium rounded-lg"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onSelect(review);
+                    }}
+                >
+                    <span>View Comments</span>
+                    <ChevronRight className="size-3 transition-transform group-hover:translate-x-0.5" />
+                </Button>
+            </div>
+        </div>
+    );
+});
+
+export function ReviewHistoryPage() {
+    const [search, setSearch] = useState('');
+    const [selectedReview, setSelectedReview] = useState<PullRequestReview | null>(null);
+    const [copiedFull, setCopiedFull] = useState(false);
+
+    const handleCopyFullReview = async () => {
+        if (!selectedReview?.reviewComment) return;
+        try {
+            await navigator.clipboard.writeText(selectedReview.reviewComment);
+            setCopiedFull(true);
+            setTimeout(() => setCopiedFull(false), 2000);
+        } catch (err) {
+            console.error('Failed to copy review markdown:', err);
+        }
+    };
+
+    const {
+        data: reviews = [],
+        isLoading,
+        isError,
+    } = useQuery<PullRequestReview[]>({
+        queryKey: ['reviews-history'],
+        queryFn: async () => {
+            const res = await apiFetch<PullRequestReview[]>('/api/reviews');
+            return res.data || [];
+        },
+    });
+
+    const filteredReviews = useMemo(() => {
+        const q = search.toLowerCase();
+        return reviews.filter(
+            (r) =>
+                r.title.toLowerCase().includes(q) ||
+                r.repoFullName.toLowerCase().includes(q) ||
+                String(r.prNumber).includes(q),
+        );
+    }, [reviews, search]);
+
+    return (
+        <div className="flex flex-col gap-6 pb-10">
+            <div>
+                <div className="flex items-center gap-2 text-xs font-mono text-muted-foreground mb-1.5">
+                    <span>Dashboard</span>
+                    <span>/</span>
+                    <span className="text-foreground font-semibold">Review History</span>
+                </div>
+                <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+                    Review History
+                </h1>
+                <p className="text-xs sm:text-sm text-muted-foreground mt-1">
+                    Complete audit trail of AI pull request reviews and evaluations generated by
+                    CodeLens.
+                </p>
+            </div>
+
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div className="relative max-w-sm w-full">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+                    <Input
+                        placeholder="Search by repo, PR title or #..."
+                        className="pl-9 bg-card/80"
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                    />
+                </div>
+
+                <Link to="/dashboard/repos">
+                    <Button
+                        size="sm"
+                        variant="brand"
+                        className="font-semibold gap-1.5 shadow-sm rounded-lg"
+                    >
+                        <FolderGit2 className="size-3.5" />
+                        Manage Repositories
+                    </Button>
+                </Link>
+            </div>
+
+            <div className="rounded-2xl border border-border/80 bg-card shadow-xs overflow-hidden">
+                {/* Table/List Subheader */}
+                <div className="flex items-center justify-between px-5 py-3 border-b border-border/80 bg-secondary-bg/50 text-xs text-muted-foreground">
+                    <div className="flex items-center gap-2">
+                        <span className="font-semibold text-foreground">Pull Request Reviews</span>
+                        <Badge
+                            variant="outline"
+                            className="font-mono text-[10px] px-2 py-0 border-border/80"
+                        >
+                            {filteredReviews.length}
+                        </Badge>
+                    </div>
+                    <span className="hidden sm:inline-block text-[11px] text-muted-foreground/70">
+                        Click any row to open AI evaluation
+                    </span>
+                </div>
+
+                {/* Content Body */}
+                <div>
+                    {isLoading ? (
+                        <div className="text-center py-16 text-muted-foreground text-xs">
+                            Loading review records…
+                        </div>
+                    ) : isError ? (
+                        <div className="text-center py-16 text-destructive text-xs">
+                            Failed to load review history.
+                        </div>
+                    ) : filteredReviews.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center p-12 text-center space-y-3">
+                            <div className="size-12 rounded-full bg-muted flex items-center justify-center text-muted-foreground">
+                                <History className="size-6" />
+                            </div>
+                            <p className="text-sm font-semibold text-foreground">
+                                No review records found
+                            </p>
+                            <p className="text-xs text-muted-foreground max-w-sm">
+                                Pull request reviews generated automatically via GitHub webhooks or
+                                live reviews will appear here.
+                            </p>
+                            <Link to="/dashboard/repos" className="pt-2">
+                                <Button size="sm" variant="outline" className="rounded-lg">
+                                    Connect Your First Repository →
+                                </Button>
+                            </Link>
+                        </div>
+                    ) : (
+                        <div className="divide-y divide-border/70">
+                            {filteredReviews.map((review) => (
+                                <ReviewRow
+                                    key={review.id}
+                                    review={review}
+                                    onSelect={setSelectedReview}
+                                />
+                            ))}
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            {/* Review Details Dialog Modal */}
+            <Dialog
+                open={!!selectedReview}
+                onOpenChange={(open) => !open && setSelectedReview(null)}
+            >
+                <DialogContent className="w-[96vw] max-w-5xl max-h-[88vh] p-0 gap-0 overflow-hidden flex flex-col bg-card border border-border/80 shadow-2xl rounded-2xl">
+                    {selectedReview && (
+                        <>
+                            {/* Modal Header */}
+                            <div className="p-5 sm:p-6 border-b border-border/80 bg-secondary-bg/30">
+                                <div className="flex items-center justify-between gap-4 mb-2">
+                                    <div className="flex items-center gap-2 flex-wrap text-xs text-muted-foreground">
+                                        <Badge
+                                            variant="outline"
+                                            className="font-mono text-xs border-border/80"
+                                        >
+                                            PR #{selectedReview.prNumber}
+                                        </Badge>
+                                        <span>•</span>
+                                        <span className="font-mono text-foreground font-medium">
+                                            {selectedReview.repoFullName}
+                                        </span>
+                                        <span>•</span>
+                                        <span>
+                                            Branch:{' '}
+                                            <span className="text-foreground font-mono">
+                                                {selectedReview.baseBranch}
+                                            </span>
+                                        </span>
+                                        {selectedReview.status === 'reviewed' && (
+                                            <>
+                                                <span>•</span>
+                                                <Badge
+                                                    variant="success"
+                                                    className="text-[11px] font-medium gap-1"
+                                                >
+                                                    <CheckCircle2 className="size-3" />
+                                                    Reviewed
+                                                </Badge>
+                                            </>
+                                        )}
+                                    </div>
+
+                                    {/* Header Actions */}
+                                    <div className="flex items-center gap-2 pr-8 sm:pr-6">
+                                        <Button
+                                            variant="outline"
+                                            size="xs"
+                                            onClick={handleCopyFullReview}
+                                            className="gap-1.5 text-xs border-border/80 cursor-pointer hover:bg-muted rounded-lg"
+                                            title="Copy full review markdown to clipboard"
+                                        >
+                                            {copiedFull ? (
+                                                <>
+                                                    <Check className="size-3 text-emerald-500" />
+                                                    <span className="text-emerald-500 font-medium">
+                                                        Copied
+                                                    </span>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Copy className="size-3" />
+                                                    <span>Copy Review</span>
+                                                </>
+                                            )}
+                                        </Button>
+
+                                        <a
+                                            href={`https://github.com/${selectedReview.repoFullName}/pull/${selectedReview.prNumber}`}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                        >
+                                            <Button
+                                                size="xs"
+                                                variant="brand"
+                                                className="gap-1.5 text-xs font-semibold cursor-pointer shadow-sm rounded-lg"
+                                            >
+                                                <span>Open on GitHub</span>
+                                                <ExternalLink className="size-3" />
+                                            </Button>
+                                        </a>
+                                    </div>
+                                </div>
+
+                                <DialogTitle className="text-lg sm:text-xl font-bold text-foreground tracking-tight leading-snug">
+                                    {selectedReview.title}
+                                </DialogTitle>
+
+                                <DialogDescription className="text-xs text-muted-foreground mt-1.5 flex flex-wrap items-center gap-2">
+                                    <span>
+                                        Authored by{' '}
+                                        <strong className="text-foreground font-medium">
+                                            @{selectedReview.authorLogin || 'unknown'}
+                                        </strong>
+                                    </span>
+                                    <span>•</span>
+                                    <span>
+                                        {selectedReview.reviewedAt
+                                            ? `Evaluated ${formatDistanceToNow(new Date(selectedReview.reviewedAt), { addSuffix: true })}`
+                                            : `Created ${formatDistanceToNow(new Date(selectedReview.createdAt), { addSuffix: true })}`}
+                                    </span>
+                                </DialogDescription>
+                            </div>
+
+                            {/* Modal Body: Scrollable Review Content with Suspense & Placeholder */}
+                            <div className="flex-1 overflow-y-auto p-5 sm:p-7 space-y-4 max-h-[calc(88vh-130px)]">
+                                <Suspense
+                                    fallback={
+                                        <div
+                                            className="rounded-xl border border-border/60 bg-[#07080C] p-6 space-y-4 animate-pulse min-h-[340px]"
+                                            aria-busy="true"
+                                        >
+                                            <div className="flex items-center justify-between pb-3 border-b border-[#1E2235]">
+                                                <div className="h-5 w-44 rounded bg-muted/40" />
+                                                <div className="h-4 w-20 rounded bg-muted/30" />
+                                            </div>
+                                            <div className="space-y-2.5 pt-2">
+                                                <div className="h-4 w-3/4 rounded bg-muted/30" />
+                                                <div className="h-4 w-5/6 rounded bg-muted/20" />
+                                                <div className="h-4 w-1/2 rounded bg-muted/30" />
+                                            </div>
+                                            <div className="h-36 rounded-lg bg-[#11131F] border border-[#1E2235] p-4 space-y-2">
+                                                <div className="h-3 w-1/4 rounded bg-muted/30" />
+                                                <div className="h-3 w-2/3 rounded bg-muted/20" />
+                                                <div className="h-3 w-1/2 rounded bg-muted/20" />
+                                            </div>
+                                        </div>
+                                    }
+                                >
+                                    <ReviewMarkdownViewer
+                                        content={selectedReview.reviewComment || ''}
+                                    />
+                                </Suspense>
+                            </div>
+                        </>
+                    )}
+                </DialogContent>
+            </Dialog>
+        </div>
+    );
+}
