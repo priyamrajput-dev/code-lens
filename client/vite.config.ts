@@ -68,6 +68,9 @@ export default defineConfig(({ mode }) => {
               if (id.includes("lucide-react")) {
                 return "vendor-icons";
               }
+              if (id.includes("gsap") || id.includes("@gsap")) {
+                return "vendor-motion";
+              }
             }
           },
         },
