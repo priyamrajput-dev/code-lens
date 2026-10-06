@@ -13,27 +13,71 @@ import {
   GitPullRequest,
   Database,
   ArrowRight,
-  Sparkles,
-  ChevronRight,
-  Copy,
-  Check,
-  Cpu,
   Layers,
   Play,
-  ShieldCheck,
-  AlertTriangle,
-  CheckCircle,
 } from "lucide-react";
 import { InteractiveWalkthroughSection } from "../components/interactive-walkthrough-section";
-import { gsap, scrollToTarget } from "@/lib/motion";
+import { HeroCodeTerminal } from "../components/hero-code-terminal";
+import { FeatureSpotlightCard } from "../components/feature-spotlight-card";
+import { TrustedStackStrip } from "../components/trusted-stack-strip";
+import { gsap, scrollToTarget, useReveal, useCounter, useMagnetic } from "@/lib/motion";
 import { useGSAP } from "@gsap/react";
 
 export function LandingPage() {
-  const [copiedSample, setCopiedSample] = useState(false);
   const heroRef = useRef<HTMLDivElement>(null);
+  const heroCtaRef = useRef<HTMLButtonElement>(null);
+  const bottomCtaRef = useRef<HTMLButtonElement>(null);
 
-  const scrollToHowItWorks = (e: React.MouseEvent) => {
-    e.preventDefault();
+  // Magnetic pulls for CTA buttons
+  useMagnetic(heroCtaRef, { strength: 16, radius: 90 });
+  useMagnetic(bottomCtaRef, { strength: 16, radius: 90 });
+
+  // Feature Section reveals
+  const featuresSectionRef = useRef<HTMLDivElement>(null);
+  useReveal(featuresSectionRef, {
+    target: "[data-feature-reveal]",
+    y: 20,
+    stagger: 0.1,
+    start: "top 85%",
+  });
+  useReveal(featuresSectionRef, {
+    target: "[data-feature-card]",
+    y: 28,
+    stagger: 0.1,
+    start: "top 80%",
+  });
+
+  // Review Section reveals
+  const reviewSectionRef = useRef<HTMLDivElement>(null);
+  useReveal(reviewSectionRef, {
+    target: "[data-review-reveal]",
+    y: 20,
+    stagger: 0.1,
+    start: "top 85%",
+  });
+
+  // Counters in review preview
+  const scoreCounterRef = useRef<HTMLSpanElement>(null);
+  const critCounterRef = useRef<HTMLSpanElement>(null);
+  const warnCounterRef = useRef<HTMLSpanElement>(null);
+  const suggCounterRef = useRef<HTMLSpanElement>(null);
+
+  useCounter(scoreCounterRef, { from: 0, to: 87, duration: 1.8, ease: "power2.out" });
+  useCounter(critCounterRef, { from: 0, to: 0, duration: 0.5 });
+  useCounter(warnCounterRef, { from: 0, to: 2, duration: 1.2, ease: "power1.out" });
+  useCounter(suggCounterRef, { from: 0, to: 3, duration: 1.4, ease: "power1.out" });
+
+  // CTA Section reveals
+  const ctaSectionRef = useRef<HTMLDivElement>(null);
+  useReveal(ctaSectionRef, {
+    target: "[data-cta-reveal]",
+    y: 20,
+    stagger: 0.1,
+    start: "top 85%",
+  });
+
+  const scrollToHowItWorks = (e?: React.MouseEvent) => {
+    if (e) e.preventDefault();
     scrollToTarget("how-it-works");
     window.history.pushState(null, "", "#how-it-works");
   };
@@ -79,28 +123,6 @@ export function LandingPage() {
     { scope: heroRef }
   );
 
-  const heroCode = `// User authentication & session handler
-export async function authenticateUser(req: Request, db: Database) {
-  const { token, email } = await req.json();
-
-  // Query session from database
-  const user = await db.query(
-    \`SELECT * FROM users WHERE email = '\${email}'\`
-  );
-
-  if (!user || user.token !== token) {
-    return new Response("Unauthorized", { status: 401 });
-  }
-
-  return Response.json({ success: true, user });
-}`;
-
-  const copyCode = () => {
-    navigator.clipboard.writeText(heroCode);
-    setCopiedSample(true);
-    setTimeout(() => setCopiedSample(false), 2000);
-  };
-
   return (
     <div className="min-h-screen flex flex-col bg-background relative overflow-x-hidden">
       <SiteNavbar />
@@ -140,6 +162,7 @@ export async function authenticateUser(req: Request, db: Database) {
             <div data-hero-fade className="flex flex-wrap items-center gap-4 pt-2">
               <Link to="/sign-in">
                 <Button
+                  ref={heroCtaRef}
                   size="lg"
                   variant="brand"
                   className="font-semibold px-6 py-4 rounded-xl shadow-md gap-2 text-xs sm:text-sm cursor-pointer"
@@ -177,199 +200,81 @@ export async function authenticateUser(req: Request, db: Database) {
 
           {/* Right Column: Interactive Code Reviewer Visual */}
           <div data-hero-visual className="lg:col-span-5 w-full">
-            <div className="relative rounded-2xl border border-border/80 bg-[#07080C] text-[#F8FAFC] shadow-xl overflow-hidden font-mono text-xs">
-              {/* Terminal Window Header Bar */}
-              <div className="flex items-center justify-between px-4 py-3 bg-[#11131F] border-b border-[#1E2235]">
-                <div className="flex items-center gap-2">
-                  <div className="size-2.5 rounded-full bg-[#F43F5E]/90" />
-                  <div className="size-2.5 rounded-full bg-[#F59E0B]/90" />
-                  <div className="size-2.5 rounded-full bg-[#10B981]/90" />
-                  <span className="ml-2 text-[11px] text-slate-400">auth-controller.ts</span>
-                </div>
-                <button
-                  type="button"
-                  onClick={copyCode}
-                  className="text-slate-400 hover:text-white transition-colors p-1 rounded-lg cursor-pointer"
-                  title="Copy sample snippet"
-                  aria-label={copiedSample ? "Code copied" : "Copy sample snippet"}
-                >
-                  {copiedSample ? <Check className="size-3.5 text-emerald-400" /> : <Copy className="size-3.5" />}
-                </button>
-              </div>
-
-              {/* Code Snippet Box */}
-              <div className="p-4 overflow-x-auto text-[12px] leading-relaxed text-slate-300 bg-[#07080C]">
-                <pre className="font-mono">
-                  <code>{heroCode}</code>
-                </pre>
-              </div>
-
-              {/* Live AI Annotations Overlay */}
-              <div className="p-3.5 border-t border-[#1E2235] bg-[#0D0E15] space-y-2.5">
-                <div className="flex items-center justify-between text-[11px]">
-                  <span className="font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-                    <Sparkles className="size-3 text-amber-400" />
-                    AI Findings Detected (2)
-                  </span>
-                  <span className="px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-400 font-semibold border border-amber-500/25">
-                    Score: 68/100
-                  </span>
-                </div>
-
-                {/* Finding 1: Security Alert */}
-                <div className="rounded-xl border border-rose-500/30 bg-rose-500/10 p-2.5 space-y-1">
-                  <div className="flex items-center gap-2 font-semibold text-rose-400 text-[11px]">
-                    <span className="px-1.5 py-0.5 rounded bg-rose-500/20 text-[10px] uppercase font-bold">SECURITY</span>
-                    <span>Line 6: Potential SQL Injection (CWE-89)</span>
-                  </div>
-                  <p className="text-slate-400 text-[11px] leading-snug">
-                    Direct template literal interpolation into SQL query. User input is unescaped.
-                  </p>
-                </div>
-
-                {/* Finding 2: Bug */}
-                <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-2.5 space-y-1">
-                  <div className="flex items-center gap-2 font-semibold text-amber-400 text-[11px]">
-                    <span className="px-1.5 py-0.5 rounded bg-amber-500/20 text-[10px] uppercase font-bold">BUG</span>
-                    <span>Line 10: Unhandled null pointer</span>
-                  </div>
-                  <p className="text-slate-400 text-[11px] leading-snug">
-                    Accessing <code className="text-white">user.token</code> may throw if database query returns empty.
-                  </p>
-                </div>
-
-                {/* Quick Action */}
-                <div className="pt-1 flex items-center justify-between text-[11px]">
-                  <span className="text-slate-500">Gemini 2.0 • Pinecone RAG</span>
-                  <button
-                    type="button"
-                    onClick={scrollToHowItWorks}
-                    className="text-amber-400 hover:underline font-medium inline-flex items-center gap-1"
-                  >
-                    Explore demo walkthrough
-                    <ChevronRight className="size-3" />
-                  </button>
-                </div>
-              </div>
-            </div>
+            <HeroCodeTerminal onExploreWalkthrough={scrollToHowItWorks} />
           </div>
         </div>
       </section>
+
+      {/* Trusted Stack Infinite Marquee Strip */}
+      <TrustedStackStrip />
 
       {/* Interactive Video Demo Walkthrough Section */}
       <InteractiveWalkthroughSection />
 
       {/* Core Features Grid */}
-      <section className="relative z-10 py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full">
+      <section ref={featuresSectionRef} className="relative z-10 py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full">
         <div className="text-center max-w-2xl mx-auto mb-16 space-y-3">
-          <Badge variant="brand" className="text-[11px] font-mono uppercase tracking-wider font-semibold">
+          <Badge data-feature-reveal variant="brand" className="text-[11px] font-mono uppercase tracking-wider font-semibold">
             Features
           </Badge>
-          <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground">
+          <h2 data-feature-reveal className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground">
             Engineered for Code Excellence
           </h2>
-          <p className="text-sm sm:text-base text-muted-foreground">
+          <p data-feature-reveal className="text-sm sm:text-base text-muted-foreground">
             Built for software engineering teams who prioritize velocity, stability, and security.
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* Feature 1 */}
-          <div className="rounded-xl border border-border/60 bg-card/50 p-6 space-y-3 hover:border-foreground/25 hover:shadow-sm transition-all">
-            <div className="size-10 rounded-xl bg-amber-500/15 border border-amber-500/25 flex items-center justify-center text-amber-500 shadow-sm">
-              <ShieldAlert className="size-5" />
-            </div>
-            <h3 className="text-base font-semibold text-foreground tracking-tight">
-              Security & Vulnerability Audits
-            </h3>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              Catches SQL injections, authentication bypasses, exposed API secrets, unsafe regexes, and unvalidated user inputs.
-            </p>
-          </div>
-
-          {/* Feature 2 */}
-          <div className="rounded-xl border border-border/60 bg-card/50 p-6 space-y-3 hover:border-foreground/25 hover:shadow-sm transition-all">
-            <div className="size-10 rounded-xl bg-amber-500/15 border border-amber-500/25 flex items-center justify-center text-amber-500 shadow-sm">
-              <Zap className="size-5" />
-            </div>
-            <h3 className="text-base font-semibold text-foreground tracking-tight">
-              Performance Regression Checks
-            </h3>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              Flags N+1 queries, unindexed queries, memory leaks, unmemoized render cascades, and heavy synchronous loops.
-            </p>
-          </div>
-
-          {/* Feature 3 */}
-          <div className="rounded-xl border border-border/60 bg-card/50 p-6 space-y-3 hover:border-foreground/25 hover:shadow-sm transition-all">
-            <div className="size-10 rounded-xl bg-amber-500/15 border border-amber-500/25 flex items-center justify-center text-amber-500 shadow-sm">
-              <GitPullRequest className="size-5" />
-            </div>
-            <h3 className="text-base font-semibold text-foreground tracking-tight">
-              GitHub Native Webhooks
-            </h3>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              Listens to pull request events in real time. The moment a PR is opened or synchronized, CodeLens analyzes the git patch.
-            </p>
-          </div>
-
-          {/* Feature 4 */}
-          <div className="rounded-xl border border-border/60 bg-card/50 p-6 space-y-3 hover:border-foreground/25 hover:shadow-sm transition-all">
-            <div className="size-10 rounded-xl bg-amber-500/15 border border-amber-500/25 flex items-center justify-center text-amber-500 shadow-sm">
-              <Database className="size-5" />
-            </div>
-            <h3 className="text-base font-semibold text-foreground tracking-tight">
-              Pinecone Vector RAG
-            </h3>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              Chunks and indexes entire repository codebases to provide reviews with full context into your modules and types.
-            </p>
-          </div>
-
-          {/* Feature 5 */}
-          <div className="rounded-xl border border-border/60 bg-card/50 p-6 space-y-3 hover:border-foreground/25 hover:shadow-sm transition-all">
-            <div className="size-10 rounded-xl bg-amber-500/15 border border-amber-500/25 flex items-center justify-center text-amber-500 shadow-sm">
-              <Layers className="size-5" />
-            </div>
-            <h3 className="text-base font-semibold text-foreground tracking-tight">
-              Architecture & DRY Evaluation
-            </h3>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              Highlights duplicate code, tight coupling, SOLID violations, missing null checks, and unclear naming conventions.
-            </p>
-          </div>
-
-          {/* Feature 6 */}
-          <div className="rounded-xl border border-border/60 bg-card/50 p-6 space-y-3 hover:border-foreground/25 hover:shadow-sm transition-all">
-            <div className="size-10 rounded-xl bg-amber-500/15 border border-amber-500/25 flex items-center justify-center text-amber-500 shadow-sm">
-              <Code2 className="size-5" />
-            </div>
-            <h3 className="text-base font-semibold text-foreground tracking-tight">
-              1-Click Actionable Code Fixes
-            </h3>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              Generates ready-to-merge markdown diff suggestions directly inside GitHub pull request comment threads.
-            </p>
-          </div>
+          <FeatureSpotlightCard
+            icon={<ShieldAlert className="size-5" />}
+            title="Security & Vulnerability Audits"
+            description="Catches SQL injections, authentication bypasses, exposed API secrets, unsafe regexes, and unvalidated user inputs."
+          />
+          <FeatureSpotlightCard
+            icon={<Zap className="size-5" />}
+            title="Performance Regression Checks"
+            description="Flags N+1 queries, unindexed queries, memory leaks, unmemoized render cascades, and heavy synchronous loops."
+          />
+          <FeatureSpotlightCard
+            icon={<GitPullRequest className="size-5" />}
+            title="GitHub Native Webhooks"
+            description="Listens to pull request events in real time. The moment a PR is opened or synchronized, CodeLens analyzes the git patch."
+          />
+          <FeatureSpotlightCard
+            icon={<Database className="size-5" />}
+            title="Pinecone Vector RAG"
+            description="Chunks and indexes entire repository codebases to provide reviews with full context into your modules and types."
+          />
+          <FeatureSpotlightCard
+            icon={<Layers className="size-5" />}
+            title="Architecture & DRY Evaluation"
+            description="Highlights duplicate code, tight coupling, SOLID violations, missing null checks, and unclear naming conventions."
+          />
+          <FeatureSpotlightCard
+            icon={<Code2 className="size-5" />}
+            title="1-Click Actionable Code Fixes"
+            description="Generates ready-to-merge markdown diff suggestions directly inside GitHub pull request comment threads."
+          />
         </div>
       </section>
 
       {/* Real Review Experience Preview */}
-      <section className="relative z-10 py-20 border-t border-border/60 bg-card/20">
+      <section ref={reviewSectionRef} className="relative z-10 py-20 border-t border-border/60 bg-card/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto mb-12 space-y-3">
-            <Badge variant="brand" className="text-[11px] font-mono uppercase tracking-wider font-semibold">
+            <Badge data-review-reveal variant="brand" className="text-[11px] font-mono uppercase tracking-wider font-semibold">
               Live Review Output
             </Badge>
-            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground">
+            <h2 data-review-reveal className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground">
               Actionable Feedback at a Glance
             </h2>
-            <p className="text-sm sm:text-base text-muted-foreground">
+            <p data-review-reveal className="text-sm sm:text-base text-muted-foreground">
               Review results categorize issues by severity with line numbers and recommended replacements.
             </p>
           </div>
 
-          <div className="rounded-2xl border border-border/70 bg-card shadow-xl p-6 sm:p-8">
+          <div data-review-reveal className="rounded-2xl border border-border/70 bg-card shadow-xl p-6 sm:p-8">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
               {/* Review Score Card */}
               <div className="lg:col-span-4 flex flex-col justify-between p-6 rounded-xl border border-border/70 bg-secondary-bg">
@@ -383,7 +288,7 @@ export async function authenticateUser(req: Request, db: Database) {
                     </Badge>
                   </div>
                   <div className="flex items-baseline gap-2">
-                    <span className="text-5xl font-extrabold tracking-tight text-foreground font-mono">
+                    <span ref={scoreCounterRef} className="text-5xl font-extrabold tracking-tight text-foreground font-mono">
                       87
                     </span>
                     <span className="text-sm text-muted-foreground font-mono">/ 100</span>
@@ -399,21 +304,21 @@ export async function authenticateUser(req: Request, db: Database) {
                       <span className="size-2 rounded-full bg-emerald-500" />
                       Critical Issues
                     </span>
-                    <span className="font-mono font-bold text-foreground">0</span>
+                    <span ref={critCounterRef} className="font-mono font-bold text-foreground">0</span>
                   </div>
                   <div className="flex items-center justify-between text-xs">
                     <span className="flex items-center gap-2 text-muted-foreground">
                       <span className="size-2 rounded-full bg-amber-500" />
                       Warnings
                     </span>
-                    <span className="font-mono font-bold text-foreground">2</span>
+                    <span ref={warnCounterRef} className="font-mono font-bold text-foreground">2</span>
                   </div>
                   <div className="flex items-center justify-between text-xs">
                     <span className="flex items-center gap-2 text-muted-foreground">
                       <span className="size-2 rounded-full bg-blue-500" />
                       Suggestions
                     </span>
-                    <span className="font-mono font-bold text-foreground">3</span>
+                    <span ref={suggCounterRef} className="font-mono font-bold text-foreground">3</span>
                   </div>
                 </div>
               </div>
@@ -421,7 +326,7 @@ export async function authenticateUser(req: Request, db: Database) {
               {/* Sample Findings List */}
               <div className="lg:col-span-8 space-y-4">
                 {/* Finding 1 */}
-                <div className="rounded-xl border border-amber-500/30 bg-card p-4.5 space-y-2.5">
+                <div className="rounded-xl border border-amber-500/30 bg-card p-4.5 space-y-2.5 hover:border-amber-500/50 hover:shadow-md transition-all">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <span className="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30">
@@ -447,7 +352,7 @@ export async function authenticateUser(req: Request, db: Database) {
                 </div>
 
                 {/* Finding 2 */}
-                <div className="rounded-xl border border-border/60 bg-card p-4.5 space-y-2.5">
+                <div className="rounded-xl border border-border/60 bg-card p-4.5 space-y-2.5 hover:border-foreground/30 hover:shadow-md transition-all">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <span className="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/30">
@@ -471,34 +376,39 @@ export async function authenticateUser(req: Request, db: Database) {
       </section>
 
       {/* Call to Action Section */}
-      <section className="relative z-10 py-20 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto w-full">
+      <section ref={ctaSectionRef} className="relative z-10 py-20 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto w-full">
         <div className="rounded-3xl border border-border/60 bg-gradient-to-b from-card/90 via-card/50 to-card/20 p-8 sm:p-12 shadow-xl space-y-6 relative overflow-hidden backdrop-blur-sm">
           <div className="absolute -right-24 -top-24 size-60 rounded-full bg-amber-500/8 dark:bg-amber-500/12 blur-3xl pointer-events-none" />
           <div className="absolute -left-24 -bottom-24 size-60 rounded-full bg-emerald-500/5 dark:bg-emerald-500/8 blur-3xl pointer-events-none" />
 
-          <Badge variant="brand" className="text-[11px] font-mono uppercase tracking-wider font-semibold">
+          <Badge data-cta-reveal variant="brand" className="text-[11px] font-mono uppercase tracking-wider font-semibold">
             Ready to ship cleaner code?
           </Badge>
 
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-foreground max-w-2xl mx-auto leading-tight">
+          <h2 data-cta-reveal className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-foreground max-w-2xl mx-auto leading-tight">
             Start reviewing your code in seconds.
           </h2>
 
-          <p className="text-sm sm:text-base text-muted-foreground max-w-lg mx-auto leading-relaxed">
+          <p data-cta-reveal className="text-sm sm:text-base text-muted-foreground max-w-lg mx-auto leading-relaxed">
             Connect your GitHub account to enable automatic PR reviews for your team with codebase RAG context.
           </p>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
+          <div data-cta-reveal className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
             <Link to="/sign-in">
-              <Button size="lg" variant="brand" className="font-semibold px-6 py-4 rounded-xl shadow-md gap-2 text-sm cursor-pointer">
+              <Button
+                ref={bottomCtaRef}
+                size="lg"
+                variant="brand"
+                className="font-semibold px-6 py-4 rounded-xl shadow-md gap-2 text-sm cursor-pointer"
+              >
                 Connect GitHub & Protect PRs
-                <ArrowRight className="size-4" />
+                <ArrowRight className="size-4 icon-nudge" />
               </Button>
             </Link>
             <button
               type="button"
               onClick={scrollToHowItWorks}
-              className="inline-flex items-center gap-2 px-5 py-4 rounded-xl border border-border/60 bg-card/50 hover:bg-card text-foreground font-medium text-sm transition-all"
+              className="inline-flex items-center gap-2 px-5 py-4 rounded-xl border border-border/60 bg-card/50 hover:bg-card text-foreground font-medium text-sm transition-all cursor-pointer"
             >
               Watch Interactive Demo
             </button>
