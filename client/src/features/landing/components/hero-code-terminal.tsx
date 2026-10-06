@@ -255,7 +255,7 @@ export function HeroCodeTerminal({ onExploreWalkthrough }: HeroCodeTerminalProps
 
         {/* Quick Action */}
         <div className="pt-1 flex items-center justify-between text-[11px]">
-          <span className="text-slate-500">Gemini 2.0 Flash • Pinecone RAG</span>
+          <span className="text-slate-500">Google Gemini • Pinecone</span>
           <button
             type="button"
             onClick={() => {

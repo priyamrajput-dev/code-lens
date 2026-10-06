@@ -84,7 +84,7 @@ export function SiteFooter() {
         <div className="pt-6 border-t border-border/60 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-muted-foreground">
           <p>© {new Date().getFullYear()} CodeLens. Built for engineering teams who value code excellence.</p>
           <div className="flex items-center gap-4 text-muted-foreground/70">
-            <span className="font-mono text-[11px]">Pinecone RAG • Gemini 2.0 • Octokit</span>
+            <span className="font-mono text-[11px]">Pinecone • Google Gemini • PostgreSQL • Node.js</span>
           </div>
         </div>
       </div>

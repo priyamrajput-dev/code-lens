@@ -9,12 +9,12 @@ interface TechItem {
 
 const techStack: TechItem[] = [
   { name: "GitHub Apps & Webhooks", category: "VCS Integration", icon: <GitPullRequest className="size-4 text-emerald-400" /> },
-  { name: "Pinecone Vector RAG", category: "Context Retrieval", icon: <Database className="size-4 text-amber-400" /> },
-  { name: "Google Gemini 2.0 Flash", category: "LLM Reasoning", icon: <Sparkles className="size-4 text-blue-400" /> },
-  { name: "PostgreSQL & pgvector", category: "Relational Persistence", icon: <Layers className="size-4 text-indigo-400" /> },
+  { name: "Pinecone", category: "Vector Database", icon: <Database className="size-4 text-amber-400" /> },
+  { name: "Google Gemini", category: "AI Intelligence", icon: <Sparkles className="size-4 text-blue-400" /> },
+  { name: "PostgreSQL", category: "Relational Database", icon: <Layers className="size-4 text-indigo-400" /> },
   { name: "Upstash Redis", category: "Atomic Limiting & Caching", icon: <Cpu className="size-4 text-rose-400" /> },
-  { name: "OWASP & AST Linting", category: "Static Rule Engine", icon: <Shield className="size-4 text-teal-400" /> },
-  { name: "Bun & TypeScript ESM", category: "Runtime Performance", icon: <Terminal className="size-4 text-amber-300" /> },
+  { name: "OWASP Security Standards", category: "Vulnerability Engine", icon: <Shield className="size-4 text-teal-400" /> },
+  { name: "Node.js & TypeScript", category: "Runtime Environment", icon: <Terminal className="size-4 text-amber-300" /> },
 ];
 
 export function TrustedStackStrip() {

@@ -269,7 +269,7 @@ export function LandingPage() {
                 Autonomous PR Code Reviews
               </span>
               <span className="text-muted-foreground">•</span>
-              <span className="text-muted-foreground text-[11px]">Pinecone RAG + Gemini 2.0</span>
+              <span className="text-muted-foreground text-[11px]">Pinecone + Google Gemini</span>
             </div>
 
             <h1 ref={headlineRef} data-hero-fade className="text-[clamp(2.25rem,5.2vw,4.5rem)] font-bold tracking-tight text-foreground leading-[1.05]">
