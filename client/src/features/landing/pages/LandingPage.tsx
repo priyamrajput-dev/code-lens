@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { SiteNavbar } from "@/components/layout/site-navbar";
 import { SiteFooter } from "@/components/layout/site-footer";
+import { PageTransition } from "@/components/layout/page-transition";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -20,13 +21,32 @@ import { InteractiveWalkthroughSection } from "../components/interactive-walkthr
 import { HeroCodeTerminal } from "../components/hero-code-terminal";
 import { FeatureSpotlightCard } from "../components/feature-spotlight-card";
 import { TrustedStackStrip } from "../components/trusted-stack-strip";
-import { gsap, scrollToTarget, useReveal, useCounter, useMagnetic } from "@/lib/motion";
+import { TypingCodeBlock } from "../components/typing-code-block";
+import {
+  gsap,
+  scrollToTarget,
+  useReveal,
+  useCounter,
+  useMagnetic,
+  useSplitText,
+} from "@/lib/motion";
 import { useGSAP } from "@gsap/react";
 
 export function LandingPage() {
   const heroRef = useRef<HTMLDivElement>(null);
+  const headlineRef = useRef<HTMLHeadingElement>(null);
   const heroCtaRef = useRef<HTMLButtonElement>(null);
   const bottomCtaRef = useRef<HTMLButtonElement>(null);
+  const gridBgRef = useRef<HTMLDivElement>(null);
+  const glowRef = useRef<HTMLDivElement>(null);
+
+  // Tier 3: SplitText line & word masked reveal on hero headline
+  useSplitText(headlineRef, {
+    type: "lines,words",
+    duration: 0.9,
+    stagger: 0.04,
+    delay: 0.2,
+  });
 
   // Magnetic pulls for CTA buttons
   useMagnetic(heroCtaRef, { strength: 16, radius: 90 });
@@ -49,6 +69,7 @@ export function LandingPage() {
 
   // Review Section reveals
   const reviewSectionRef = useRef<HTMLDivElement>(null);
+  const scoreBarRef = useRef<HTMLDivElement>(null);
   useReveal(reviewSectionRef, {
     target: "[data-review-reveal]",
     y: 20,
@@ -67,14 +88,88 @@ export function LandingPage() {
   useCounter(warnCounterRef, { from: 0, to: 2, duration: 1.2, ease: "power1.out" });
   useCounter(suggCounterRef, { from: 0, to: 3, duration: 1.4, ease: "power1.out" });
 
-  // CTA Section reveals
+  // Tier 3: Review score bar scrub to 87%
+  useGSAP(
+    () => {
+      const mm = gsap.matchMedia();
+      mm.add("(prefers-reduced-motion: no-preference)", () => {
+        if (scoreBarRef.current) {
+          gsap.fromTo(
+            scoreBarRef.current,
+            { width: "0%" },
+            {
+              width: "87%",
+              duration: 1.8,
+              ease: "power2.out",
+              scrollTrigger: {
+                trigger: scoreBarRef.current,
+                start: "top 85%",
+                once: true,
+              },
+            }
+          );
+        }
+      });
+      mm.add("(prefers-reduced-motion: reduce)", () => {
+        if (scoreBarRef.current) {
+          gsap.set(scoreBarRef.current, { width: "87%" });
+        }
+      });
+    },
+    { scope: reviewSectionRef }
+  );
+
+  // CTA Section reveals & Tier 3 scroll animations
   const ctaSectionRef = useRef<HTMLDivElement>(null);
+  const ctaGlowRef = useRef<HTMLDivElement>(null);
   useReveal(ctaSectionRef, {
     target: "[data-cta-reveal]",
     y: 20,
     stagger: 0.1,
     start: "top 85%",
   });
+
+  useGSAP(
+    () => {
+      const mm = gsap.matchMedia();
+      mm.add("(prefers-reduced-motion: no-preference)", () => {
+        if (ctaGlowRef.current) {
+          gsap.to(ctaGlowRef.current, {
+            x: 35,
+            y: -25,
+            scale: 1.15,
+            ease: "none",
+            scrollTrigger: {
+              trigger: ctaSectionRef.current,
+              start: "top bottom",
+              end: "bottom top",
+              scrub: true,
+            },
+          });
+        }
+
+        if (bottomCtaRef.current) {
+          gsap.fromTo(
+            bottomCtaRef.current,
+            { scale: 1 },
+            {
+              scale: 1.04,
+              duration: 0.35,
+              yoyo: true,
+              repeat: 1,
+              ease: "power2.out",
+              scrollTrigger: {
+                trigger: bottomCtaRef.current,
+                start: "top 85%",
+                once: true,
+              },
+            }
+          );
+        }
+      });
+    },
+    { scope: ctaSectionRef }
+  );
 
   const scrollToHowItWorks = (e?: React.MouseEvent) => {
     if (e) e.preventDefault();
@@ -98,7 +193,7 @@ export function LandingPage() {
     return () => window.removeEventListener("hashchange", handleHash);
   }, []);
 
-  // Tier 1: Page-load fade/slide-in for hero elements
+  // Tier 1 & Tier 3: Page-load fade/slide-in & parallax on hero background
   useGSAP(
     () => {
       const mm = gsap.matchMedia();
@@ -114,6 +209,35 @@ export function LandingPage() {
           { y: 0, opacity: 1, scale: 1, duration: 0.9 },
           "-=0.5"
         );
+
+        // Tier 3: Parallax on background grid and ambient glow
+        if (gridBgRef.current) {
+          gsap.to(gridBgRef.current, {
+            y: 80,
+            ease: "none",
+            scrollTrigger: {
+              trigger: heroRef.current,
+              start: "top top",
+              end: "bottom top",
+              scrub: true,
+            },
+          });
+        }
+
+        if (glowRef.current) {
+          gsap.to(glowRef.current, {
+            y: 180,
+            scale: 1.2,
+            opacity: 0.4,
+            ease: "none",
+            scrollTrigger: {
+              trigger: heroRef.current,
+              start: "top top",
+              end: "bottom top",
+              scrub: true,
+            },
+          });
+        }
       });
 
       mm.add("(prefers-reduced-motion: reduce)", () => {
@@ -124,12 +248,12 @@ export function LandingPage() {
   );
 
   return (
-    <div className="min-h-screen flex flex-col bg-background relative overflow-x-hidden">
+    <PageTransition className="min-h-screen flex flex-col bg-background relative overflow-x-hidden">
       <SiteNavbar />
 
-      {/* Global Background Grid & Ambient Glows */}
-      <div className="fixed inset-0 pointer-events-none z-0 bg-tech-grid opacity-20 mask-radial-hero" />
-      <div className="fixed top-1/3 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-amber-500/8 dark:bg-amber-500/15 blur-[140px] rounded-full pointer-events-none" />
+      {/* Global Background Grid & Ambient Glows with Tier 3 Parallax */}
+      <div ref={gridBgRef} className="fixed inset-0 pointer-events-none z-0 bg-tech-grid opacity-20 mask-radial-hero" />
+      <div ref={glowRef} className="fixed top-1/3 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-amber-500/8 dark:bg-amber-500/15 blur-[140px] rounded-full pointer-events-none" />
 
       {/* Hero Section */}
       <section ref={heroRef} className="relative z-10 pt-20 pb-32 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full">
@@ -148,9 +272,9 @@ export function LandingPage() {
               <span className="text-muted-foreground text-[11px]">Pinecone RAG + Gemini 2.0</span>
             </div>
 
-            <h1 data-hero-fade className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold tracking-tight text-foreground leading-[1.05]">
+            <h1 ref={headlineRef} data-hero-fade className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold tracking-tight text-foreground leading-[1.05]">
               Write better code. <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-foreground via-foreground/90 to-amber-500 dark:to-amber-400 font-extrabold">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-foreground via-foreground/90 to-amber-500 dark:to-amber-400 font-extrabold animate-gradient-pan inline-block">
                 Ship with confidence.
               </span>
             </h1>
@@ -293,6 +417,16 @@ export function LandingPage() {
                     </span>
                     <span className="text-sm text-muted-foreground font-mono">/ 100</span>
                   </div>
+
+                  {/* Tier 3: Score Progress Bar */}
+                  <div className="w-full bg-border/60 h-2 rounded-full overflow-hidden mt-3">
+                    <div
+                      ref={scoreBarRef}
+                      className="h-full bg-gradient-to-r from-amber-500 to-emerald-500 rounded-full"
+                      style={{ width: "87%" }}
+                    />
+                  </div>
+
                   <p className="text-xs text-muted-foreground leading-relaxed">
                     Code demonstrates clean architecture. 2 non-blocking warnings and 3 readability recommendations identified.
                   </p>
@@ -342,13 +476,12 @@ export function LandingPage() {
                   <p className="text-xs text-muted-foreground leading-relaxed">
                     This query executes sequentially inside a loop and will introduce severe latency with larger datasets (N+1 query antipattern).
                   </p>
-                  <div className="rounded-lg border border-border/60 bg-[#07080C] text-slate-300 p-3 text-[11px] font-mono">
-                    <span className="text-emerald-400">// Recommended Fix:</span>
-                    <br />
-                    const userIds = users.map(u =&gt; u.id);
-                    <br />
-                    const profiles = await db.query(`SELECT * FROM profiles WHERE user_id IN (?)`, [userIds]);
-                  </div>
+                  <TypingCodeBlock
+                    lines={[
+                      "const userIds = users.map(u => u.id);",
+                      "const profiles = await db.query(`SELECT * FROM profiles WHERE user_id IN (?)`, [userIds]);",
+                    ]}
+                  />
                 </div>
 
                 {/* Finding 2 */}
@@ -378,7 +511,7 @@ export function LandingPage() {
       {/* Call to Action Section */}
       <section ref={ctaSectionRef} className="relative z-10 py-20 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto w-full">
         <div className="rounded-3xl border border-border/60 bg-gradient-to-b from-card/90 via-card/50 to-card/20 p-8 sm:p-12 shadow-xl space-y-6 relative overflow-hidden backdrop-blur-sm">
-          <div className="absolute -right-24 -top-24 size-60 rounded-full bg-amber-500/8 dark:bg-amber-500/12 blur-3xl pointer-events-none" />
+          <div ref={ctaGlowRef} className="absolute -right-24 -top-24 size-60 rounded-full bg-amber-500/8 dark:bg-amber-500/12 blur-3xl pointer-events-none" />
           <div className="absolute -left-24 -bottom-24 size-60 rounded-full bg-emerald-500/5 dark:bg-emerald-500/8 blur-3xl pointer-events-none" />
 
           <Badge data-cta-reveal variant="brand" className="text-[11px] font-mono uppercase tracking-wider font-semibold">
@@ -417,6 +550,6 @@ export function LandingPage() {
       </section>
 
       <SiteFooter />
-    </div>
+    </PageTransition>
   );
 }

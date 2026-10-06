@@ -1,4 +1,4 @@
-import React, { useState, useEffect, memo } from "react";
+import React, { useState, useEffect, useRef, memo } from "react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import {
@@ -13,14 +13,62 @@ import {
   AlertTriangle,
   CheckCircle,
 } from "lucide-react";
+import { gsap, ScrollTrigger } from "@/lib/motion";
+import { useGSAP } from "@gsap/react";
 
 export const InteractiveWalkthroughSection = memo(function InteractiveWalkthroughSection() {
   const [demoStep, setDemoStep] = useState<1 | 2 | 3>(1);
   const [isPlaying, setIsPlaying] = useState(true);
   const [progress, setProgress] = useState(0);
+  const [isPinned, setIsPinned] = useState(false);
+  const sectionRef = useRef<HTMLElement>(null);
+
+  useGSAP(
+    () => {
+      const section = sectionRef.current;
+      if (!section) return;
+
+      const mm = gsap.matchMedia();
+
+      // Desktop: pin and scrub with scroll
+      mm.add("(min-width: 1024px) and (prefers-reduced-motion: no-preference)", () => {
+        setIsPinned(true);
+        setIsPlaying(false);
+
+        ScrollTrigger.create({
+          trigger: section,
+          start: "top top+=68",
+          end: "+=1400",
+          pin: true,
+          scrub: 0.5,
+          anticipatePin: 1,
+          onUpdate: (self) => {
+            const p = self.progress;
+            if (p < 0.33) {
+              setDemoStep(1);
+              setProgress(Math.round((p / 0.33) * 100));
+            } else if (p < 0.67) {
+              setDemoStep(2);
+              setProgress(Math.round(((p - 0.33) / 0.34) * 100));
+            } else {
+              setDemoStep(3);
+              setProgress(Math.round(((p - 0.67) / 0.33) * 100));
+            }
+          },
+        });
+      });
+
+      // Mobile or reduced motion: disable pin, enable auto-play
+      mm.add("(max-width: 1023px)", () => {
+        setIsPinned(false);
+        setIsPlaying(true);
+      });
+    },
+    { scope: sectionRef }
+  );
 
   useEffect(() => {
-    if (!isPlaying) return;
+    if (isPinned || !isPlaying) return;
     const interval = setInterval(() => {
       setProgress((prev) => {
         if (prev >= 100) {
@@ -31,7 +79,7 @@ export const InteractiveWalkthroughSection = memo(function InteractiveWalkthroug
       });
     }, 100);
     return () => clearInterval(interval);
-  }, [isPlaying]);
+  }, [isPlaying, isPinned]);
 
   const handleSelectStep = (step: 1 | 2 | 3) => {
     setDemoStep(step);
@@ -39,7 +87,7 @@ export const InteractiveWalkthroughSection = memo(function InteractiveWalkthroug
   };
 
   return (
-    <section id="how-it-works" className="relative z-10 py-32 border-t border-border/60 bg-card/20 scroll-mt-24">
+    <section ref={sectionRef} id="how-it-works" className="relative z-10 py-32 border-t border-border/60 bg-card/20 scroll-mt-24">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-3xl mx-auto mb-12 space-y-3">
           <Badge variant="brand" className="text-[11px] font-mono uppercase tracking-wider font-semibold">
@@ -67,10 +115,17 @@ export const InteractiveWalkthroughSection = memo(function InteractiveWalkthroug
             </div>
 
             <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-[10px] text-emerald-400 font-semibold">
-                <span className="size-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                LIVE SIMULATION • 1080p
-              </span>
+              {isPinned ? (
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border border-amber-500/30 bg-amber-500/10 text-[10px] text-amber-400 font-semibold">
+                  <span className="size-1.5 rounded-full bg-amber-400 animate-pulse" />
+                  SCROLL TO SCRUB • DESKTOP PINNED
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-[10px] text-emerald-400 font-semibold">
+                  <span className="size-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  LIVE SIMULATION • 1080p
+                </span>
+              )}
             </div>
           </div>
 
