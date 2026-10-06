@@ -6,7 +6,6 @@ import { ThemeProvider } from './components/Provider/theme-provider';
 import { Toaster } from 'sonner';
 import App from './App';
 import './index.css';
-import './lib/prism-init';
 
 const queryClient = new QueryClient({
     defaultOptions: {
