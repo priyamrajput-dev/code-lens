@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { BrandLogo } from '@/components/ui/brand-logo';
 import { ModeToggle } from '@/components/ui/mode-toggle';
@@ -26,12 +26,17 @@ import {
 import { GitHubIcon } from '@/features/auth/components/github-sign-in-form';
 import { cn } from '@/lib/utils';
 import { routePreloadProps } from '@/lib/route-utils';
+import { gsap, scrollToTarget } from '@/lib/motion';
+import { useGSAP } from '@gsap/react';
 
 export function SiteNavbar() {
     const location = useLocation();
     const navigate = useNavigate();
     const { data: session } = useSession();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const [isScrolled, setIsScrolled] = useState(false);
+    const headerRef = useRef<HTMLElement>(null);
+    const progressBarRef = useRef<HTMLDivElement>(null);
 
     const isAuthenticated = !!session?.user;
     const user = session?.user;
@@ -52,16 +57,69 @@ export function SiteNavbar() {
         { label: 'History', href: isAuthenticated ? '/dashboard/history' : '/sign-in' },
     ];
 
+    useGSAP(
+        () => {
+            const mm = gsap.matchMedia();
+
+            mm.add('(prefers-reduced-motion: no-preference)', () => {
+                // Initial entrance animation
+                gsap.fromTo(
+                    headerRef.current,
+                    { y: -16, opacity: 0 },
+                    { y: 0, opacity: 1, duration: 0.6, ease: 'power3.out' }
+                );
+
+                let lastScrollY = window.scrollY;
+
+                const onScroll = () => {
+                    const currentY = window.scrollY;
+                    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+                    const progress = docHeight > 0 ? Math.min(1, Math.max(0, currentY / docHeight)) : 0;
+
+                    if (progressBarRef.current) {
+                        gsap.set(progressBarRef.current, { scaleX: progress });
+                    }
+
+                    setIsScrolled(currentY > 80);
+
+                    // Auto-hide on scroll down, show on scroll up
+                    if (currentY > 120 && currentY > lastScrollY + 6 && !mobileMenuOpen) {
+                        gsap.to(headerRef.current, {
+                            y: '-100%',
+                            duration: 0.3,
+                            ease: 'power2.out',
+                            overwrite: 'auto',
+                        });
+                    } else if (currentY < lastScrollY - 6 || currentY <= 80) {
+                        gsap.to(headerRef.current, {
+                            y: '0%',
+                            duration: 0.3,
+                            ease: 'power2.out',
+                            overwrite: 'auto',
+                        });
+                    }
+
+                    lastScrollY = currentY;
+                };
+
+                window.addEventListener('scroll', onScroll, { passive: true });
+                return () => window.removeEventListener('scroll', onScroll);
+            });
+
+            mm.add('(prefers-reduced-motion: reduce)', () => {
+                gsap.set(headerRef.current, { y: '0%', opacity: 1 });
+            });
+        },
+        { scope: headerRef, dependencies: [mobileMenuOpen] }
+    );
+
     const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
         if (href.includes('#')) {
             const hash = href.split('#')[1];
             if (location.pathname === '/') {
                 e.preventDefault();
-                const element = document.getElementById(hash);
-                if (element) {
-                    element.scrollIntoView({ behavior: 'smooth' });
-                    window.history.pushState(null, '', `#${hash}`);
-                }
+                scrollToTarget(hash);
+                window.history.pushState(null, '', `#${hash}`);
             } else {
                 navigate(`/#${hash}`);
             }
@@ -75,7 +133,24 @@ export function SiteNavbar() {
     };
 
     return (
-        <header className="sticky top-0 z-50 w-full border-b border-border/70 bg-background/85 backdrop-blur-xl">
+        <>
+            {/* Top Scroll Progress Bar */}
+            <div
+                ref={progressBarRef}
+                className="fixed top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-amber-500 via-amber-400 to-orange-500 origin-left z-[60] pointer-events-none transform-gpu"
+                style={{ transform: 'scaleX(0)' }}
+                aria-hidden="true"
+            />
+
+            <header
+                ref={headerRef}
+                className={cn(
+                    'sticky top-0 z-50 w-full transition-colors duration-200',
+                    isScrolled
+                        ? 'border-b border-border/80 bg-background/95 backdrop-blur-2xl shadow-sm'
+                        : 'border-b border-border/60 bg-background/80 backdrop-blur-xl'
+                )}
+            >
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
                 {/* Left: Brand Logo */}
                 <Link
@@ -304,5 +379,6 @@ export function SiteNavbar() {
                 </div>
             )}
         </header>
+        </>
     );
 }

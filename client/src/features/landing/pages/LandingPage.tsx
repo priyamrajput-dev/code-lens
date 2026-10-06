@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { SiteNavbar } from "@/components/layout/site-navbar";
 import { SiteFooter } from "@/components/layout/site-footer";
@@ -25,17 +25,17 @@ import {
   CheckCircle,
 } from "lucide-react";
 import { InteractiveWalkthroughSection } from "../components/interactive-walkthrough-section";
+import { gsap, scrollToTarget } from "@/lib/motion";
+import { useGSAP } from "@gsap/react";
 
 export function LandingPage() {
   const [copiedSample, setCopiedSample] = useState(false);
+  const heroRef = useRef<HTMLDivElement>(null);
 
   const scrollToHowItWorks = (e: React.MouseEvent) => {
     e.preventDefault();
-    const element = document.getElementById("how-it-works");
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth" });
-      window.history.pushState(null, "", "#how-it-works");
-    }
+    scrollToTarget("how-it-works");
+    window.history.pushState(null, "", "#how-it-works");
   };
 
   useEffect(() => {
@@ -43,12 +43,9 @@ export function LandingPage() {
       const hash = window.location.hash;
       if (hash) {
         const id = hash.replace("#", "");
-        const element = document.getElementById(id);
-        if (element) {
-          setTimeout(() => {
-            element.scrollIntoView({ behavior: "smooth" });
-          }, 60);
-        }
+        setTimeout(() => {
+          scrollToTarget(id);
+        }, 80);
       }
     };
 
@@ -56,6 +53,31 @@ export function LandingPage() {
     window.addEventListener("hashchange", handleHash);
     return () => window.removeEventListener("hashchange", handleHash);
   }, []);
+
+  // Tier 1: Page-load fade/slide-in for hero elements
+  useGSAP(
+    () => {
+      const mm = gsap.matchMedia();
+      mm.add("(prefers-reduced-motion: no-preference)", () => {
+        const tl = gsap.timeline({ defaults: { ease: "power3.out", duration: 0.8 } });
+        tl.fromTo(
+          "[data-hero-fade]",
+          { y: 24, opacity: 0 },
+          { y: 0, opacity: 1, stagger: 0.1, delay: 0.1 }
+        ).fromTo(
+          "[data-hero-visual]",
+          { y: 32, opacity: 0, scale: 0.98 },
+          { y: 0, opacity: 1, scale: 1, duration: 0.9 },
+          "-=0.5"
+        );
+      });
+
+      mm.add("(prefers-reduced-motion: reduce)", () => {
+        gsap.set(["[data-hero-fade]", "[data-hero-visual]"], { y: 0, opacity: 1, scale: 1 });
+      });
+    },
+    { scope: heroRef }
+  );
 
   const heroCode = `// User authentication & session handler
 export async function authenticateUser(req: Request, db: Database) {
@@ -88,11 +110,11 @@ export async function authenticateUser(req: Request, db: Database) {
       <div className="fixed top-1/3 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-amber-500/8 dark:bg-amber-500/15 blur-[140px] rounded-full pointer-events-none" />
 
       {/* Hero Section */}
-      <section className="relative z-10 pt-20 pb-32 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full">
+      <section ref={heroRef} className="relative z-10 pt-20 pb-32 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
           {/* Left Column: Headline & Call to Actions */}
           <div className="lg:col-span-7 flex flex-col items-start text-left space-y-6">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-border/60 bg-card/50 backdrop-blur-sm text-xs font-mono shadow-sm">
+            <div data-hero-fade className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-border/60 bg-card/50 backdrop-blur-sm text-xs font-mono shadow-sm">
               <span className="relative flex items-center">
                 <span className="absolute inline-flex h-2 w-2 rounded-full bg-amber-500" />
                 <span className="relative w-2 h-2 rounded-full bg-amber-500" />
@@ -104,18 +126,18 @@ export async function authenticateUser(req: Request, db: Database) {
               <span className="text-muted-foreground text-[11px]">Pinecone RAG + Gemini 2.0</span>
             </div>
 
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold tracking-tight text-foreground leading-[1.05]">
+            <h1 data-hero-fade className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold tracking-tight text-foreground leading-[1.05]">
               Write better code. <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-foreground via-foreground/90 to-amber-500 dark:to-amber-400 font-extrabold">
                 Ship with confidence.
               </span>
             </h1>
 
-            <p className="text-base sm:text-lg text-muted-foreground max-w-xl leading-relaxed">
+            <p data-hero-fade className="text-base sm:text-lg text-muted-foreground max-w-xl leading-relaxed">
               Review your pull requests with a 24/7 intelligent AI reviewer that catches bugs, security flaws, and performance regressions using deep codebase context.
             </p>
 
-            <div className="flex flex-wrap items-center gap-4 pt-2">
+            <div data-hero-fade className="flex flex-wrap items-center gap-4 pt-2">
               <Link to="/sign-in">
                 <Button
                   size="lg"
@@ -123,13 +145,13 @@ export async function authenticateUser(req: Request, db: Database) {
                   className="font-semibold px-6 py-4 rounded-xl shadow-md gap-2 text-xs sm:text-sm cursor-pointer"
                 >
                   Get Started Free
-                  <ArrowRight className="size-4" />
+                  <ArrowRight className="size-4 icon-nudge" />
                 </Button>
               </Link>
               <button
                 type="button"
                 onClick={scrollToHowItWorks}
-                className="inline-flex items-center gap-2 px-5 py-4 rounded-xl border border-border/60 bg-card/50 hover:bg-card text-foreground font-medium text-sm transition-all duration-200"
+                className="inline-flex items-center gap-2 px-5 py-4 rounded-xl border border-border/60 bg-card/50 hover:bg-card text-foreground font-medium text-sm transition-all duration-200 cursor-pointer"
               >
                 <Play className="size-3.5 fill-amber-500 text-amber-500" />
                 Watch Interactive Demo
@@ -137,7 +159,7 @@ export async function authenticateUser(req: Request, db: Database) {
             </div>
 
             {/* Quick Benefits Checklist */}
-            <div className="pt-6 flex flex-wrap items-center gap-6 text-xs text-muted-foreground border-t border-border/50 w-full">
+            <div data-hero-fade className="pt-6 flex flex-wrap items-center gap-6 text-xs text-muted-foreground border-t border-border/50 w-full">
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="size-4 text-emerald-500 shrink-0" />
                 <span>Zero configuration required</span>
@@ -154,7 +176,7 @@ export async function authenticateUser(req: Request, db: Database) {
           </div>
 
           {/* Right Column: Interactive Code Reviewer Visual */}
-          <div className="lg:col-span-5 w-full">
+          <div data-hero-visual className="lg:col-span-5 w-full">
             <div className="relative rounded-2xl border border-border/80 bg-[#07080C] text-[#F8FAFC] shadow-xl overflow-hidden font-mono text-xs">
               {/* Terminal Window Header Bar */}
               <div className="flex items-center justify-between px-4 py-3 bg-[#11131F] border-b border-[#1E2235]">
