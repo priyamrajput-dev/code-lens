@@ -28,25 +28,15 @@ import {
   useReveal,
   useCounter,
   useMagnetic,
-  useSplitText,
 } from "@/lib/motion";
 import { useGSAP } from "@gsap/react";
 
 export function LandingPage() {
   const heroRef = useRef<HTMLDivElement>(null);
-  const headlineRef = useRef<HTMLHeadingElement>(null);
   const heroCtaRef = useRef<HTMLButtonElement>(null);
   const bottomCtaRef = useRef<HTMLButtonElement>(null);
   const gridBgRef = useRef<HTMLDivElement>(null);
   const glowRef = useRef<HTMLDivElement>(null);
-
-  // Tier 3: SplitText line & word masked reveal on hero headline
-  useSplitText(headlineRef, {
-    type: "lines,words",
-    duration: 0.9,
-    stagger: 0.04,
-    delay: 0.2,
-  });
 
   // Magnetic pulls for CTA buttons
   useMagnetic(heroCtaRef, { strength: 16, radius: 90 });
@@ -272,10 +262,10 @@ export function LandingPage() {
               <span className="text-muted-foreground text-[11px]">Pinecone + Google Gemini</span>
             </div>
 
-            <h1 ref={headlineRef} data-hero-fade className="text-[clamp(2.25rem,5.2vw,4.5rem)] font-bold tracking-tight text-foreground leading-[1.05]">
-              Write better code. <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-foreground via-foreground/90 to-amber-500 dark:to-amber-400 font-extrabold animate-gradient-pan inline-block">
-                Ship with confidence.
+            <h1 data-hero-fade className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-foreground leading-[1.1] max-w-2xl">
+              Write better code.
+              <span className="block mt-2 text-transparent bg-clip-text bg-gradient-to-r from-amber-600 via-orange-500 to-amber-500 dark:from-amber-400 dark:via-orange-400 dark:to-amber-300 font-extrabold animate-gradient-pan pb-1">
+                Review smarter. Ship faster.
               </span>
             </h1>
 
