@@ -256,7 +256,7 @@ export function LandingPage() {
       <div ref={glowRef} className="fixed top-1/3 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-amber-500/8 dark:bg-amber-500/15 blur-[140px] rounded-full pointer-events-none" />
 
       {/* Hero Section */}
-      <section ref={heroRef} className="relative z-10 pt-20 pb-32 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full">
+      <section ref={heroRef} className="relative z-10 pt-20 sm:pt-24 pb-24 sm:pb-32 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
           {/* Left Column: Headline & Call to Actions */}
           <div className="lg:col-span-7 flex flex-col items-start text-left space-y-6">
@@ -272,7 +272,7 @@ export function LandingPage() {
               <span className="text-muted-foreground text-[11px]">Pinecone RAG + Gemini 2.0</span>
             </div>
 
-            <h1 ref={headlineRef} data-hero-fade className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold tracking-tight text-foreground leading-[1.05]">
+            <h1 ref={headlineRef} data-hero-fade className="text-[clamp(2.25rem,5.2vw,4.5rem)] font-bold tracking-tight text-foreground leading-[1.05]">
               Write better code. <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-foreground via-foreground/90 to-amber-500 dark:to-amber-400 font-extrabold animate-gradient-pan inline-block">
                 Ship with confidence.
@@ -289,7 +289,7 @@ export function LandingPage() {
                   ref={heroCtaRef}
                   size="lg"
                   variant="brand"
-                  className="font-semibold px-6 py-4 rounded-xl shadow-md gap-2 text-xs sm:text-sm cursor-pointer"
+                  className="font-semibold px-6 py-4 min-h-[44px] rounded-xl shadow-md gap-2 text-xs sm:text-sm cursor-pointer"
                 >
                   Get Started Free
                   <ArrowRight className="size-4 icon-nudge" />
@@ -298,7 +298,7 @@ export function LandingPage() {
               <button
                 type="button"
                 onClick={scrollToHowItWorks}
-                className="inline-flex items-center gap-2 px-5 py-4 rounded-xl border border-border/60 bg-card/50 hover:bg-card text-foreground font-medium text-sm transition-all duration-200 cursor-pointer"
+                className="inline-flex items-center gap-2 px-5 py-3.5 sm:py-4 min-h-[44px] rounded-xl border border-border/60 bg-card/50 hover:bg-card text-foreground font-medium text-sm transition-all duration-200 cursor-pointer"
               >
                 <Play className="size-3.5 fill-amber-500 text-amber-500" />
                 Watch Interactive Demo
@@ -336,7 +336,7 @@ export function LandingPage() {
       <InteractiveWalkthroughSection />
 
       {/* Core Features Grid */}
-      <section ref={featuresSectionRef} className="relative z-10 py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full">
+      <section ref={featuresSectionRef} className="relative z-10 py-24 sm:py-32 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full">
         <div className="text-center max-w-2xl mx-auto mb-16 space-y-3">
           <Badge data-feature-reveal variant="brand" className="text-[11px] font-mono uppercase tracking-wider font-semibold">
             Features
@@ -384,7 +384,7 @@ export function LandingPage() {
       </section>
 
       {/* Real Review Experience Preview */}
-      <section ref={reviewSectionRef} className="relative z-10 py-20 border-t border-border/60 bg-card/20">
+      <section ref={reviewSectionRef} className="relative z-10 py-24 sm:py-32 border-t border-border/60 bg-card/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto mb-12 space-y-3">
             <Badge data-review-reveal variant="brand" className="text-[11px] font-mono uppercase tracking-wider font-semibold">
@@ -398,7 +398,7 @@ export function LandingPage() {
             </p>
           </div>
 
-          <div data-review-reveal className="rounded-2xl border border-border/70 bg-card shadow-xl p-6 sm:p-8">
+          <div data-review-reveal className="rounded-2xl border border-border/70 bg-card shadow-layered p-6 sm:p-8">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
               {/* Review Score Card */}
               <div className="lg:col-span-4 flex flex-col justify-between p-6 rounded-xl border border-border/70 bg-secondary-bg">
@@ -509,8 +509,8 @@ export function LandingPage() {
       </section>
 
       {/* Call to Action Section */}
-      <section ref={ctaSectionRef} className="relative z-10 py-20 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto w-full">
-        <div className="rounded-3xl border border-border/60 bg-gradient-to-b from-card/90 via-card/50 to-card/20 p-8 sm:p-12 shadow-xl space-y-6 relative overflow-hidden backdrop-blur-sm">
+      <section ref={ctaSectionRef} className="relative z-10 py-24 sm:py-32 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto w-full">
+        <div className="rounded-3xl border border-border/60 bg-gradient-to-b from-card/90 via-card/50 to-card/20 p-8 sm:p-12 shadow-layered space-y-6 relative overflow-hidden backdrop-blur-sm">
           <div ref={ctaGlowRef} className="absolute -right-24 -top-24 size-60 rounded-full bg-amber-500/8 dark:bg-amber-500/12 blur-3xl pointer-events-none" />
           <div className="absolute -left-24 -bottom-24 size-60 rounded-full bg-emerald-500/5 dark:bg-emerald-500/8 blur-3xl pointer-events-none" />
 
@@ -532,7 +532,7 @@ export function LandingPage() {
                 ref={bottomCtaRef}
                 size="lg"
                 variant="brand"
-                className="font-semibold px-6 py-4 rounded-xl shadow-md gap-2 text-sm cursor-pointer"
+                className="font-semibold px-6 py-4 min-h-[44px] rounded-xl shadow-md gap-2 text-sm cursor-pointer"
               >
                 Connect GitHub & Protect PRs
                 <ArrowRight className="size-4 icon-nudge" />
@@ -541,7 +541,7 @@ export function LandingPage() {
             <button
               type="button"
               onClick={scrollToHowItWorks}
-              className="inline-flex items-center gap-2 px-5 py-4 rounded-xl border border-border/60 bg-card/50 hover:bg-card text-foreground font-medium text-sm transition-all cursor-pointer"
+              className="inline-flex items-center gap-2 px-5 py-4 min-h-[44px] rounded-xl border border-border/60 bg-card/50 hover:bg-card text-foreground font-medium text-sm transition-all cursor-pointer"
             >
               Watch Interactive Demo
             </button>

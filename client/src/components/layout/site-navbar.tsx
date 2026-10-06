@@ -305,16 +305,16 @@ export function SiteNavbar() {
                         </div>
                     )}
 
-                    {/* Mobile Menu Toggle */}
+                    {/* Mobile Menu Toggle (44px touch target) */}
                     <button
                         type="button"
                         onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                         aria-expanded={mobileMenuOpen}
                         aria-controls="site-mobile-nav"
                         aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
-                        className="md:hidden inline-flex size-9 items-center justify-center rounded-lg border border-border/60 bg-card/50 text-foreground transition-colors hover:bg-card"
+                        className="md:hidden inline-flex min-h-[44px] min-w-[44px] size-11 items-center justify-center rounded-lg border border-border/60 bg-card/50 text-foreground transition-colors hover:bg-card cursor-pointer"
                     >
-                        {mobileMenuOpen ? <X className="size-4" /> : <Menu className="size-4" />}
+                        {mobileMenuOpen ? <X className="size-5" /> : <Menu className="size-5" />}
                     </button>
                 </div>
             </div>
