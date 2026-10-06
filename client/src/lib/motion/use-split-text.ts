@@ -1,6 +1,5 @@
-import { type RefObject } from "react";
-import { useGSAP } from "@gsap/react";
-import { gsap, SplitText } from "./gsap-setup";
+import { type RefObject, useEffect } from "react";
+import { animate } from "motion";
 
 export interface UseSplitTextOptions {
   type?: "words" | "lines" | "chars" | "lines,words";
@@ -14,83 +13,29 @@ export interface UseSplitTextOptions {
 
 /**
  * useSplitText
- * Splits text into masked lines or words and animates them upwards with transform & opacity only.
- * Safely reverts the split DOM on unmount or media query change.
+ * Smooth text appearance without proprietary GSAP SplitText plugin.
  */
 export function useSplitText(
   targetRef: RefObject<HTMLElement | null>,
   options: UseSplitTextOptions = {}
 ) {
   const {
-    type = "lines,words",
     stagger = 0.04,
-    duration = 0.9,
+    duration = 0.8,
     delay = 0.1,
-    ease = "power3.out",
-    start = "top 90%",
   } = options;
 
-  useGSAP(
-    () => {
-      const el = targetRef.current;
-      if (!el) return;
+  useEffect(() => {
+    const el = targetRef.current;
+    if (!el) return;
 
-      const mm = gsap.matchMedia();
+    const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (prefersReduced) return;
 
-      mm.add("(prefers-reduced-motion: no-preference)", () => {
-        let split: SplitText | null = null;
-
-        try {
-          split = new SplitText(el, {
-            type,
-            linesClass: "split-line overflow-hidden py-0.5",
-            wordsClass: "split-word inline-block",
-          });
-
-          const elementsToAnimate = type.includes("words") ? split.words : split.lines;
-
-          gsap.fromTo(
-            elementsToAnimate,
-            {
-              y: "115%",
-              opacity: 0,
-            },
-            {
-              y: "0%",
-              opacity: 1,
-              duration,
-              stagger,
-              delay,
-              ease,
-              scrollTrigger: options.trigger
-                ? {
-                    trigger: options.trigger.current || el,
-                    start,
-                    once: true,
-                  }
-                : undefined,
-            }
-          );
-        } catch {
-          // Graceful fallback if SplitText encounters unusual inline nodes
-          gsap.fromTo(
-            el,
-            { opacity: 0, y: 20 },
-            { opacity: 1, y: 0, duration, delay, ease }
-          );
-        }
-
-        return () => {
-          if (split) {
-            split.revert();
-          }
-        };
-      });
-
-      mm.add("(prefers-reduced-motion: reduce)", () => {
-        gsap.set(el, { opacity: 1, y: 0 });
-      });
-    },
-    { scope: targetRef, dependencies: [type, stagger, duration, delay, ease, start] }
-  );
+    animate(
+      el,
+      { opacity: [0, 1], y: [16, 0] },
+      { duration, delay, ease: [0.16, 1, 0.3, 1] }
+    );
+  }, [targetRef, stagger, duration, delay]);
 }

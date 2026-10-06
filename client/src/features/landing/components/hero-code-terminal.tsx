@@ -1,7 +1,6 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { Sparkles, Copy, Check, ChevronRight } from "lucide-react";
-import { gsap, scrollToTarget } from "@/lib/motion";
-import { useGSAP } from "@gsap/react";
+import { motion, scrollToTarget } from "@/lib/motion";
 
 interface HeroCodeTerminalProps {
   onExploreWalkthrough?: () => void;
@@ -11,10 +10,6 @@ export function HeroCodeTerminal({ onExploreWalkthrough }: HeroCodeTerminalProps
   const [copied, setCopied] = useState(false);
   const [typedLinesCount, setTypedLinesCount] = useState(0);
   const [isTypingComplete, setIsTypingComplete] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const findingsRef = useRef<HTMLDivElement>(null);
-  const finding1Ref = useRef<HTMLDivElement>(null);
-  const finding2Ref = useRef<HTMLDivElement>(null);
 
   const rawLines = [
     { num: 1, text: "// User authentication & session handler", type: "comment" },
@@ -65,58 +60,8 @@ export function HeroCodeTerminal({ onExploreWalkthrough }: HeroCodeTerminalProps
     return () => clearInterval(interval);
   }, [rawLines.length]);
 
-  // Animate the AI finding cards in with stagger and pulse once typing finishes
-  useGSAP(
-    () => {
-      if (!isTypingComplete) return;
-
-      const mm = gsap.matchMedia();
-      mm.add("(prefers-reduced-motion: no-preference)", () => {
-        const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
-
-        tl.fromTo(
-          findingsRef.current,
-          { opacity: 0, y: 12 },
-          { opacity: 1, y: 0, duration: 0.5 }
-        ).fromTo(
-          [finding1Ref.current, finding2Ref.current],
-          { opacity: 0, x: 20, scale: 0.97 },
-          {
-            opacity: 1,
-            x: 0,
-            scale: 1,
-            stagger: 0.2,
-            duration: 0.6,
-          },
-          "-=0.2"
-        ).to(
-          finding1Ref.current,
-          {
-            boxShadow: "0 0 16px rgba(244, 63, 94, 0.25)",
-            repeat: 1,
-            yoyo: true,
-            duration: 0.8,
-            ease: "sine.inOut",
-          },
-          "+=0.1"
-        );
-      });
-
-      mm.add("(prefers-reduced-motion: reduce)", () => {
-        gsap.set([findingsRef.current, finding1Ref.current, finding2Ref.current], {
-          opacity: 1,
-          x: 0,
-          y: 0,
-          scale: 1,
-        });
-      });
-    },
-    { scope: containerRef, dependencies: [isTypingComplete] }
-  );
-
   return (
     <div
-      ref={containerRef}
       className="relative rounded-2xl border border-border/80 bg-[#07080C] text-[#F8FAFC] shadow-2xl overflow-hidden font-mono text-xs transition-all duration-300 hover:border-amber-500/30"
     >
       {/* Terminal Window Header Bar */}
@@ -205,70 +150,76 @@ export function HeroCodeTerminal({ onExploreWalkthrough }: HeroCodeTerminalProps
       </div>
 
       {/* Live AI Annotations Overlay */}
-      <div
-        ref={findingsRef}
-        className={`p-3.5 border-t border-[#1E2235] bg-[#0D0E15] space-y-2.5 transition-opacity ${
-          isTypingComplete ? "opacity-100" : "opacity-0"
-        }`}
-      >
-        <div className="flex items-center justify-between text-[11px]">
-          <span className="font-semibold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-            <Sparkles className="size-3 text-amber-400" />
-            AI Findings Detected (2)
-          </span>
-          <span className="px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-400 font-semibold border border-amber-500/25">
-            Quality Score: 68/100
-          </span>
-        </div>
-
-        {/* Finding 1: Security Alert */}
-        <div
-          ref={finding1Ref}
-          className="rounded-xl border border-rose-500/30 bg-rose-500/10 p-2.5 space-y-1 transition-all"
+      {isTypingComplete && (
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+          className="p-3.5 border-t border-[#1E2235] bg-[#0D0E15] space-y-2.5"
         >
-          <div className="flex items-center gap-2 font-semibold text-rose-400 text-[11px]">
-            <span className="px-1.5 py-0.5 rounded bg-rose-500/20 text-[10px] uppercase font-bold tracking-wider">
-              SECURITY
+          <div className="flex items-center justify-between text-[11px]">
+            <span className="font-semibold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+              <Sparkles className="size-3 text-amber-400" />
+              AI Findings Detected (2)
             </span>
-            <span>Line 7: Potential SQL Injection (CWE-89)</span>
-          </div>
-          <p className="text-slate-400 text-[11px] leading-snug">
-            Direct template literal interpolation into SQL query. User input is unescaped.
-          </p>
-        </div>
-
-        {/* Finding 2: Bug */}
-        <div
-          ref={finding2Ref}
-          className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-2.5 space-y-1 transition-all"
-        >
-          <div className="flex items-center gap-2 font-semibold text-amber-400 text-[11px]">
-            <span className="px-1.5 py-0.5 rounded bg-amber-500/20 text-[10px] uppercase font-bold tracking-wider">
-              BUG
+            <span className="px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-400 font-semibold border border-amber-500/25">
+              Quality Score: 68/100
             </span>
-            <span>Line 10: Unhandled null pointer</span>
           </div>
-          <p className="text-slate-400 text-[11px] leading-snug">
-            Accessing <code className="text-white">user.token</code> may throw if database query returns empty.
-          </p>
-        </div>
 
-        {/* Quick Action */}
-        <div className="pt-1 flex items-center justify-between text-[11px]">
-          <span className="text-slate-500">Google Gemini • Pinecone</span>
-          <button
-            type="button"
-            onClick={() => {
-              if (onExploreWalkthrough) onExploreWalkthrough();
-              else scrollToTarget("how-it-works");
-            }}
-            className="text-amber-400 hover:text-amber-300 hover:underline font-medium inline-flex items-center gap-1 cursor-pointer"
+          {/* Finding 1: Security Alert */}
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+            className="rounded-xl border border-rose-500/30 bg-rose-500/10 p-2.5 space-y-1 transition-all"
           >
-            Explore demo walkthrough
-            <ChevronRight className="size-3" />
-          </button>
-        </div>
-      </div>
+            <div className="flex items-center gap-2 font-semibold text-rose-400 text-[11px]">
+              <span className="px-1.5 py-0.5 rounded bg-rose-500/20 text-[10px] uppercase font-bold tracking-wider">
+                SECURITY
+              </span>
+              <span>Line 7: Potential SQL Injection (CWE-89)</span>
+            </div>
+            <p className="text-slate-400 text-[11px] leading-snug">
+              Direct template literal interpolation into SQL query. User input is unescaped.
+            </p>
+          </motion.div>
+
+          {/* Finding 2: Bug */}
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}
+            className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-2.5 space-y-1 transition-all"
+          >
+            <div className="flex items-center gap-2 font-semibold text-amber-400 text-[11px]">
+              <span className="px-1.5 py-0.5 rounded bg-amber-500/20 text-[10px] uppercase font-bold tracking-wider">
+                BUG
+              </span>
+              <span>Line 10: Unhandled null pointer</span>
+            </div>
+            <p className="text-slate-400 text-[11px] leading-snug">
+              Accessing <code className="text-white">user.token</code> may throw if database query returns empty.
+            </p>
+          </motion.div>
+
+          {/* Quick Action */}
+          <div className="pt-1 flex items-center justify-between text-[11px]">
+            <span className="text-slate-500">Google Gemini • Pinecone</span>
+            <button
+              type="button"
+              onClick={() => {
+                if (onExploreWalkthrough) onExploreWalkthrough();
+                else scrollToTarget("how-it-works");
+              }}
+              className="text-amber-400 hover:text-amber-300 hover:underline font-medium inline-flex items-center gap-1 cursor-pointer"
+            >
+              Explore demo walkthrough
+              <ChevronRight className="size-3" />
+            </button>
+          </div>
+        </motion.div>
+      )}
     </div>
   );
 }

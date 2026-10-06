@@ -1,21 +1,21 @@
-import { type RefObject } from "react";
-import { useGSAP } from "@gsap/react";
-import { gsap } from "./gsap-setup";
+import { type RefObject, useEffect } from "react";
+import { animate } from "motion";
+import { useInView } from "motion/react";
 
 export interface UseCounterOptions {
   from?: number;
   to: number;
   duration?: number;
-  ease?: string;
   decimals?: number;
   prefix?: string;
   suffix?: string;
+  ease?: string;
   start?: string;
 }
 
 /**
  * useCounter
- * Animates a numeric text node from `from` to `to` when scrolled into view.
+ * Animates a numeric text node from `from` to `to` when scrolled into view using Motion.
  */
 export function useCounter(
   ref: RefObject<HTMLElement | null>,
@@ -25,50 +25,35 @@ export function useCounter(
     from = 0,
     to,
     duration = 1.6,
-    ease = "power2.out",
     decimals = 0,
     prefix = "",
     suffix = "",
-    start = "top 85%",
   } = options;
 
-  useGSAP(
-    () => {
-      const el = ref.current;
-      if (!el) return;
+  const isInView = useInView(ref, { once: true, margin: "0px 0px -15% 0px" });
 
-      const mm = gsap.matchMedia();
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || !isInView) return;
 
-      mm.add("(prefers-reduced-motion: no-preference)", () => {
-        const counterObj = { val: from };
+    const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (prefersReduced) {
+      const formatted = decimals > 0 ? to.toFixed(decimals) : Math.round(to).toLocaleString();
+      el.textContent = `${prefix}${formatted}${suffix}`;
+      return;
+    }
 
-        gsap.to(counterObj, {
-          val: to,
-          duration,
-          ease,
-          scrollTrigger: {
-            trigger: el,
-            start,
-            once: true,
-          },
-          onUpdate: () => {
-            if (el) {
-              const formatted = decimals > 0
-                ? counterObj.val.toFixed(decimals)
-                : Math.round(counterObj.val).toLocaleString();
-              el.textContent = `${prefix}${formatted}${suffix}`;
-            }
-          },
-        });
-      });
+    const controls = animate(from, to, {
+      duration,
+      ease: [0.16, 1, 0.3, 1], // easeOutExpo / power3.out equivalent
+      onUpdate: (latest) => {
+        if (el) {
+          const formatted = decimals > 0 ? latest.toFixed(decimals) : Math.round(latest).toLocaleString();
+          el.textContent = `${prefix}${formatted}${suffix}`;
+        }
+      },
+    });
 
-      mm.add("(prefers-reduced-motion: reduce)", () => {
-        const formatted = decimals > 0
-          ? to.toFixed(decimals)
-          : Math.round(to).toLocaleString();
-        el.textContent = `${prefix}${formatted}${suffix}`;
-      });
-    },
-    { scope: ref, dependencies: [from, to, duration, ease, decimals, prefix, suffix, start] }
-  );
+    return () => controls.stop();
+  }, [isInView, from, to, duration, decimals, prefix, suffix, ref]);
 }

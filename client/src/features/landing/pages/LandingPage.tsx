@@ -23,48 +23,61 @@ import { FeatureSpotlightCard } from "../components/feature-spotlight-card";
 import { TrustedStackStrip } from "../components/trusted-stack-strip";
 import { TypingCodeBlock } from "../components/typing-code-block";
 import {
-  gsap,
+  motion,
+  useScroll,
+  useTransform,
   scrollToTarget,
   useReveal,
   useCounter,
   useMagnetic,
 } from "@/lib/motion";
-import { useGSAP } from "@gsap/react";
 
 export function LandingPage() {
   const heroRef = useRef<HTMLDivElement>(null);
   const heroCtaRef = useRef<HTMLButtonElement>(null);
   const bottomCtaRef = useRef<HTMLButtonElement>(null);
-  const gridBgRef = useRef<HTMLDivElement>(null);
-  const glowRef = useRef<HTMLDivElement>(null);
+
+  // Parallax scroll hooks
+  const { scrollY } = useScroll();
+  const gridY = useTransform(scrollY, [0, 800], [0, 80]);
+  const glowY = useTransform(scrollY, [0, 800], [0, 180]);
+  const ctaGlowY = useTransform(scrollY, [1400, 2600], [-30, 30]);
 
   // Magnetic pulls for CTA buttons
   useMagnetic(heroCtaRef, { strength: 16, radius: 90 });
   useMagnetic(bottomCtaRef, { strength: 16, radius: 90 });
+
+  // Hero entrance reveals
+  useReveal(heroRef, {
+    target: "[data-hero-fade]",
+    y: 24,
+    stagger: 0.08,
+  });
+  useReveal(heroRef, {
+    target: "[data-hero-visual]",
+    y: 32,
+    delay: 0.15,
+  });
 
   // Feature Section reveals
   const featuresSectionRef = useRef<HTMLDivElement>(null);
   useReveal(featuresSectionRef, {
     target: "[data-feature-reveal]",
     y: 20,
-    stagger: 0.1,
-    start: "top 85%",
+    stagger: 0.08,
   });
   useReveal(featuresSectionRef, {
     target: "[data-feature-card]",
     y: 28,
-    stagger: 0.1,
-    start: "top 80%",
+    stagger: 0.08,
   });
 
   // Review Section reveals
   const reviewSectionRef = useRef<HTMLDivElement>(null);
-  const scoreBarRef = useRef<HTMLDivElement>(null);
   useReveal(reviewSectionRef, {
     target: "[data-review-reveal]",
     y: 20,
-    stagger: 0.1,
-    start: "top 85%",
+    stagger: 0.08,
   });
 
   // Counters in review preview
@@ -73,93 +86,18 @@ export function LandingPage() {
   const warnCounterRef = useRef<HTMLSpanElement>(null);
   const suggCounterRef = useRef<HTMLSpanElement>(null);
 
-  useCounter(scoreCounterRef, { from: 0, to: 87, duration: 1.8, ease: "power2.out" });
+  useCounter(scoreCounterRef, { from: 0, to: 87, duration: 1.8 });
   useCounter(critCounterRef, { from: 0, to: 0, duration: 0.5 });
-  useCounter(warnCounterRef, { from: 0, to: 2, duration: 1.2, ease: "power1.out" });
-  useCounter(suggCounterRef, { from: 0, to: 3, duration: 1.4, ease: "power1.out" });
+  useCounter(warnCounterRef, { from: 0, to: 2, duration: 1.2 });
+  useCounter(suggCounterRef, { from: 0, to: 3, duration: 1.4 });
 
-  // Tier 3: Review score bar scrub to 87%
-  useGSAP(
-    () => {
-      const mm = gsap.matchMedia();
-      mm.add("(prefers-reduced-motion: no-preference)", () => {
-        if (scoreBarRef.current) {
-          gsap.fromTo(
-            scoreBarRef.current,
-            { width: "0%" },
-            {
-              width: "87%",
-              duration: 1.8,
-              ease: "power2.out",
-              scrollTrigger: {
-                trigger: scoreBarRef.current,
-                start: "top 85%",
-                once: true,
-              },
-            }
-          );
-        }
-      });
-      mm.add("(prefers-reduced-motion: reduce)", () => {
-        if (scoreBarRef.current) {
-          gsap.set(scoreBarRef.current, { width: "87%" });
-        }
-      });
-    },
-    { scope: reviewSectionRef }
-  );
-
-  // CTA Section reveals & Tier 3 scroll animations
+  // CTA Section reveals
   const ctaSectionRef = useRef<HTMLDivElement>(null);
-  const ctaGlowRef = useRef<HTMLDivElement>(null);
   useReveal(ctaSectionRef, {
     target: "[data-cta-reveal]",
     y: 20,
-    stagger: 0.1,
-    start: "top 85%",
+    stagger: 0.08,
   });
-
-  useGSAP(
-    () => {
-      const mm = gsap.matchMedia();
-      mm.add("(prefers-reduced-motion: no-preference)", () => {
-        if (ctaGlowRef.current) {
-          gsap.to(ctaGlowRef.current, {
-            x: 35,
-            y: -25,
-            scale: 1.15,
-            ease: "none",
-            scrollTrigger: {
-              trigger: ctaSectionRef.current,
-              start: "top bottom",
-              end: "bottom top",
-              scrub: true,
-            },
-          });
-        }
-
-        if (bottomCtaRef.current) {
-          gsap.fromTo(
-            bottomCtaRef.current,
-            { scale: 1 },
-            {
-              scale: 1.04,
-              duration: 0.35,
-              yoyo: true,
-              repeat: 1,
-              ease: "power2.out",
-              scrollTrigger: {
-                trigger: bottomCtaRef.current,
-                start: "top 85%",
-                once: true,
-              },
-            }
-          );
-        }
-      });
-    },
-    { scope: ctaSectionRef }
-  );
 
   const scrollToHowItWorks = (e?: React.MouseEvent) => {
     if (e) e.preventDefault();
@@ -183,67 +121,19 @@ export function LandingPage() {
     return () => window.removeEventListener("hashchange", handleHash);
   }, []);
 
-  // Tier 1 & Tier 3: Page-load fade/slide-in & parallax on hero background
-  useGSAP(
-    () => {
-      const mm = gsap.matchMedia();
-      mm.add("(prefers-reduced-motion: no-preference)", () => {
-        const tl = gsap.timeline({ defaults: { ease: "power3.out", duration: 0.8 } });
-        tl.fromTo(
-          "[data-hero-fade]",
-          { y: 24, opacity: 0 },
-          { y: 0, opacity: 1, stagger: 0.1, delay: 0.1 }
-        ).fromTo(
-          "[data-hero-visual]",
-          { y: 32, opacity: 0, scale: 0.98 },
-          { y: 0, opacity: 1, scale: 1, duration: 0.9 },
-          "-=0.5"
-        );
-
-        // Tier 3: Parallax on background grid and ambient glow
-        if (gridBgRef.current) {
-          gsap.to(gridBgRef.current, {
-            y: 80,
-            ease: "none",
-            scrollTrigger: {
-              trigger: heroRef.current,
-              start: "top top",
-              end: "bottom top",
-              scrub: true,
-            },
-          });
-        }
-
-        if (glowRef.current) {
-          gsap.to(glowRef.current, {
-            y: 180,
-            scale: 1.2,
-            opacity: 0.4,
-            ease: "none",
-            scrollTrigger: {
-              trigger: heroRef.current,
-              start: "top top",
-              end: "bottom top",
-              scrub: true,
-            },
-          });
-        }
-      });
-
-      mm.add("(prefers-reduced-motion: reduce)", () => {
-        gsap.set(["[data-hero-fade]", "[data-hero-visual]"], { y: 0, opacity: 1, scale: 1 });
-      });
-    },
-    { scope: heroRef }
-  );
-
   return (
     <PageTransition className="min-h-screen flex flex-col bg-background relative overflow-x-hidden">
       <SiteNavbar />
 
-      {/* Global Background Grid & Ambient Glows with Tier 3 Parallax */}
-      <div ref={gridBgRef} className="fixed inset-0 pointer-events-none z-0 bg-tech-grid opacity-20 mask-radial-hero" />
-      <div ref={glowRef} className="fixed top-1/3 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-amber-500/8 dark:bg-amber-500/15 blur-[140px] rounded-full pointer-events-none" />
+      {/* Global Background Grid & Ambient Glows with Motion Parallax */}
+      <motion.div
+        style={{ y: gridY }}
+        className="fixed inset-0 pointer-events-none z-0 bg-tech-grid opacity-20 mask-radial-hero"
+      />
+      <motion.div
+        style={{ y: glowY }}
+        className="fixed top-1/3 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-amber-500/8 dark:bg-amber-500/15 blur-[140px] rounded-full pointer-events-none"
+      />
 
       {/* Hero Section */}
       <section ref={heroRef} className="relative z-10 pt-20 sm:pt-24 pb-24 sm:pb-32 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full">
@@ -408,12 +298,14 @@ export function LandingPage() {
                     <span className="text-sm text-muted-foreground font-mono">/ 100</span>
                   </div>
 
-                  {/* Tier 3: Score Progress Bar */}
+                  {/* Score Progress Bar */}
                   <div className="w-full bg-border/60 h-2 rounded-full overflow-hidden mt-3">
-                    <div
-                      ref={scoreBarRef}
+                    <motion.div
+                      initial={{ width: "0%" }}
+                      whileInView={{ width: "87%" }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
                       className="h-full bg-gradient-to-r from-amber-500 to-emerald-500 rounded-full"
-                      style={{ width: "87%" }}
                     />
                   </div>
 
@@ -501,7 +393,10 @@ export function LandingPage() {
       {/* Call to Action Section */}
       <section ref={ctaSectionRef} className="relative z-10 py-24 sm:py-32 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto w-full">
         <div className="rounded-3xl border border-border/60 bg-gradient-to-b from-card/90 via-card/50 to-card/20 p-8 sm:p-12 shadow-layered space-y-6 relative overflow-hidden backdrop-blur-sm">
-          <div ref={ctaGlowRef} className="absolute -right-24 -top-24 size-60 rounded-full bg-amber-500/8 dark:bg-amber-500/12 blur-3xl pointer-events-none" />
+          <motion.div
+            style={{ y: ctaGlowY }}
+            className="absolute -right-24 -top-24 size-60 rounded-full bg-amber-500/8 dark:bg-amber-500/12 blur-3xl pointer-events-none"
+          />
           <div className="absolute -left-24 -bottom-24 size-60 rounded-full bg-emerald-500/5 dark:bg-emerald-500/8 blur-3xl pointer-events-none" />
 
           <Badge data-cta-reveal variant="brand" className="text-[11px] font-mono uppercase tracking-wider font-semibold">
@@ -528,13 +423,13 @@ export function LandingPage() {
                 <ArrowRight className="size-4 icon-nudge" />
               </Button>
             </Link>
-            <button
-              type="button"
+            <a
+              href="#how-it-works"
               onClick={scrollToHowItWorks}
               className="inline-flex items-center gap-2 px-5 py-4 min-h-[44px] rounded-xl border border-border/60 bg-card/50 hover:bg-card text-foreground font-medium text-sm transition-all cursor-pointer"
             >
               Watch Interactive Demo
-            </button>
+            </a>
           </div>
         </div>
       </section>

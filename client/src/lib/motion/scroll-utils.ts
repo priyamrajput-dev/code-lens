@@ -1,5 +1,3 @@
-import { ScrollTrigger } from "./gsap-setup";
-
 /**
  * scrollToTarget
  * Smooth, reliable scrolling to an anchor ID or element with offset for the fixed navbar.
@@ -40,9 +38,4 @@ export function scrollToTarget(targetIdOrElement: string | HTMLElement, offset: 
       behavior: prefersReduced ? "auto" : "smooth",
     });
   }
-
-  // Refresh ScrollTrigger instances once the smooth scroll reaches destination
-  setTimeout(() => {
-    ScrollTrigger.refresh();
-  }, 850);
 }
